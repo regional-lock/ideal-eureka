@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Details | MovieVerse</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-left">
+            <a href="index.html" class="logo" id="logoLink">MovieVerse</a>
+            <div class="nav-links">
+                <a href="index.html?type=movie">Movies</a>
+                <a href="index.html?type=tv">TV Shows</a>
+            </div>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search movies & series...">
+        </div>
+    </nav>
+
+
+
+    <div id="detailContent">
+        <!-- Content added by detail.js -->
+    </div>
+
+    <!-- Trailer Modal -->
+    <div id="trailerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="trailerVideoContainer"></div>
+        </div>
+    </div>
+
+    <script type="module" src="js/detail.js"></script>
+</body>
+
+</html>

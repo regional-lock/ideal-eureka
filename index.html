@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MovieVerse | Premium Movie Database</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <nav>
+        <div class="nav-left">
+            <a href="index.html" class="logo">MovieVerse</a>
+            <div class="nav-links">
+                <a href="index.html?type=movie">Movies</a>
+                <a href="index.html?type=tv">TV Shows</a>
+            </div>
+        </div>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search movies & series...">
+        </div>
+    </nav>
+
+    <header class="hero" id="hero">
+        <div class="hero-content" id="heroContent">
+            <!-- Dynamically populated -->
+        </div>
+    </header>
+
+    <div class="filter-bar">
+        <div class="filter-group">
+            <label>Type</label>
+            <select id="typeFilter">
+                <option value="movie">Movies</option>
+                <option value="tv">TV Shows</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Genre</label>
+            <select id="genreFilter">
+                <option value="">All Genres</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Language</label>
+            <select id="languageFilter">
+                <option value="">All Languages</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Country</label>
+            <select id="countryFilter">
+                <option value="">All Regions</option>
+            </select>
+        </div>
+    </div>
+
+    <main id="mainContent">
+        <section id="discoverySection" style="display: none;">
+            <h2 class="section-title" id="discoveryTitle">Discovery Results</h2>
+            <div class="movie-grid" id="discoveryGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+        <section class="trending-section" style="position: relative;">
+            <h2 class="section-title">Trending Now</h2>
+            <button id="prevBtn" class="slider-control prev" onclick="moveSlider('prev')">‹</button>
+            <div class="slider-viewport">
+                <div class="slider-track" id="trendingGrid">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+            <button id="nextBtn" class="slider-control next" onclick="moveSlider('next')">›</button>
+        </section>
+
+        <section id="popularSection">
+            <h2 class="section-title">Popular Movies</h2>
+            <div class="movie-grid" id="popularGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <section id="topRatedSection">
+            <h2 class="section-title">Top Rated Series</h2>
+            <div class="movie-grid" id="topRatedGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+    </main>
+
+    </main>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+
+</html>
