@@ -1,4 +1,4 @@
-const JW_API = "https://apis.justwatch.com/graphql";
+const JW_API = "/api/jw";
 
 const COUNTRIES = [
     "US", "ID", "SG", "JP", "KR", "GB", "DE", "FR", "IT", "ES",
@@ -217,3 +217,4 @@ export const justwatch = {
         return { node, streaming };
     }
 };
+
