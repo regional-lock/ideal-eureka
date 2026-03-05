@@ -87,8 +87,8 @@ async function init() {
         displayMovies(trending.results, trendingGrid, 'movie');
         initSlider();
     }
-    if (popular) displayMovies(popular.results.slice(0, 16), popularGrid, 'movie');
-    if (topRated) displayMovies(topRated.results.slice(0, 16), topRatedGrid, 'tv');
+    if (popular) displayMovies(popular.results.slice(0, 18), popularGrid, 'movie');
+    if (topRated) displayMovies(topRated.results.slice(0, 18), topRatedGrid, 'tv');
 
     // Handle deep links
     if (searchParam) {
