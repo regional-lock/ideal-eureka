@@ -559,11 +559,16 @@ function renderDetails(data, type, similarResults) {
                             enriched.presentationType
                                 ? `<span class="tech-badge">${enriched.presentationType.replace('_4K', '4K')}</span>`
                                 : '',
-                            ...(enriched.videoTechnology || []).map(v =>
-                                `<span class="tech-badge">${v.replace(/_/g, ' ')}</span>`),
-                            ...(enriched.audioTechnology || []).map(a =>
-                                `<span class="tech-badge">${a.replace(/_/g, ' ')}</span>`)
+                            ...(enriched.videoTechnology || []).map(v => {
+                                const label = v?.replace(/_/g, ' ').trim();
+                                return label ? `<span class="tech-badge">${label}</span>` : '';
+                            }),
+                            ...(enriched.audioTechnology || []).map(a => {
+                                const label = a?.replace(/_/g, ' ').trim();
+                                return label ? `<span class="tech-badge">${label}</span>` : '';
+                            })
                         ].filter(Boolean).join('') : '';
+                        const hasTechBadges = techBadges.trim().length > 0;
 
                         return `
                         <div class="country-pill-alt">
@@ -582,7 +587,7 @@ function renderDetails(data, type, similarResults) {
                                     `).join('')}
                                 </div>
                             </div>
-                            ${techBadges ? `<div class="country-pill-tech">${techBadges}</div>` : ''}
+                            ${hasTechBadges ? `<div class="country-pill-tech">${techBadges}</div>` : ''}
                         </div>`;
                     }).join('')}
                 </div>
