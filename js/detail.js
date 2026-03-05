@@ -121,7 +121,7 @@ function renderDetails(data, type, similarResults) {
                     }
                     // Check if already exists
                     if (!providerGroups[pName].countries[c].find(off => off.type === type)) {
-                        providerGroups[pName].countries[c].push({ type, price: null, videoTechnology: [], audioTechnology: [], audioLanguages: [] });
+                        providerGroups[pName].countries[c].push({ type, price: null, presentationType: null, videoTechnology: [], audioTechnology: [], audioLanguages: [], subtitleLanguages: [] });
                     }
                 });
             };
@@ -170,22 +170,21 @@ function renderDetails(data, type, similarResults) {
                             let jwType = off.type.toUpperCase();
                             if (jwType === 'FLATRATE') jwType = 'STREAM';
 
-                            const target = countryOffers.find(o => o.type === jwType);
-                            if (target) {
-                                // Format price nicely
-                                let priceLabel = off.price;
-                                if (off.price && off.price.includes(' ')) {
-                                    const [val, cur] = off.price.split(' ');
-                                    const curSymbol = { 'USD': '$', 'EUR': '€', 'GBP': '£', 'IDR': 'Rp', 'JPY': '¥', 'THB': '฿', 'SGD': 'S$' }[cur] || cur;
-                                    priceLabel = `${curSymbol}${val}`;
+                            // Write tech data to ALL entries of this type —
+                            // prefer richer data (non-empty arrays) over empty ones
+                            const targets = countryOffers.filter(o => o.type === jwType);
+                            targets.forEach(target => {
+                                const incomingHasTech = (off.videoTechnology?.length || off.audioTechnology?.length);
+                                const targetLacksTech = (!target.videoTechnology?.length && !target.audioTechnology?.length);
+                                if (incomingHasTech || targetLacksTech) {
+                                    target.link              = off.link;
+                                    target.videoTechnology   = off.videoTechnology   || [];
+                                    target.audioTechnology   = off.audioTechnology   || [];
+                                    target.audioLanguages    = off.audioLanguages    || [];
+                                    target.subtitleLanguages = off.subtitleLanguages || [];
+                                    target.presentationType  = off.quality           || null;
                                 }
-                                target.price = priceLabel;
-                                target.link = off.link;
-                                target.videoTechnology = off.videoTechnology || [];
-                                target.audioTechnology = off.audioTechnology || [];
-                                target.audioLanguages = off.audioLanguages || [];
-                                target.presentationType = off.quality || null;
-                            }
+                            });
                         }
                     }
                 }
