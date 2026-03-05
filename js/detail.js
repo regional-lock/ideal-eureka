@@ -170,8 +170,6 @@ function renderDetails(data, type, similarResults) {
                             let jwType = off.type.toUpperCase();
                             if (jwType === 'FLATRATE') jwType = 'STREAM';
 
-                            // Write tech data to ALL entries of this type —
-                            // prefer richer data (non-empty arrays) over empty ones
                             const targets = countryOffers.filter(o => o.type === jwType);
                             targets.forEach(target => {
                                 const incomingHasTech = (off.videoTechnology?.length || off.audioTechnology?.length);
@@ -281,6 +279,30 @@ function renderDetails(data, type, similarResults) {
         const close = () => modalEl.remove();
         document.getElementById('detailsPopupClose').onclick = close;
         modalEl.addEventListener('click', (e) => { if (e.target === modalEl) close(); });
+    };
+
+    // Maps raw JustWatch tech enum values to clean human-readable labels
+    const formatTechLabel = (val) => {
+        if (!val) return '';
+        const map = {
+            '_4K':                '4K',
+            'HD':                 'HD',
+            'SD':                 'SD',
+            'DOLBY_VISION':       'Dolby Vision',
+            'HDR':                'HDR',
+            'HDR10':              'HDR10',
+            'HDR10_PLUS':         'HDR10+',
+            'DOLBY_ATMOS':        'Dolby Atmos',
+            'DOLBY_DIGITAL':      'Dolby Digital',
+            'DOLBY_DIGITAL_PLUS': 'Dolby Digital+',
+            '_5_1':               '5.1',
+            '_7_1':               '7.1',
+            '_5_POINT_1':         '5.1',
+            '_7_POINT_1':         '7.1',
+            'STEREO':             'Stereo',
+            'MONO':               'Mono',
+        };
+        return map[val] ?? val.replace(/_/g, ' ').trim();
     };
 
     const renderRegionalStreaming = () => {
@@ -544,6 +566,9 @@ function renderDetails(data, type, similarResults) {
                         </div>
                     </div>
                     <div class="p-actions-large">
+                        <button class="btn-mini-alt" onclick="window.loadProviderDetails('${name.replace(/'/g, "\\'")}')">
+                            <i class="fas fa-external-link-alt"></i> Load Details (US)
+                        </button>
                         <button class="btn-mini-alt" onclick="window.copyProviderLink('${name.replace(/'/g, "\\'")}', event)">
                             <i class="fas fa-copy"></i> Copy Link
                         </button>
@@ -557,14 +582,14 @@ function renderDetails(data, type, similarResults) {
                         );
                         const techBadges = enriched ? [
                             enriched.presentationType
-                                ? `<span class="tech-badge">${enriched.presentationType.replace('_4K', '4K')}</span>`
+                                ? `<span class="tech-badge">${formatTechLabel(enriched.presentationType)}</span>`
                                 : '',
                             ...(enriched.videoTechnology || []).map(v => {
-                                const label = v?.replace(/_/g, ' ').trim();
+                                const label = formatTechLabel(v);
                                 return label ? `<span class="tech-badge">${label}</span>` : '';
                             }),
                             ...(enriched.audioTechnology || []).map(a => {
-                                const label = a?.replace(/_/g, ' ').trim();
+                                const label = formatTechLabel(a);
                                 return label ? `<span class="tech-badge">${label}</span>` : '';
                             })
                         ].filter(Boolean).join('') : '';
