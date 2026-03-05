@@ -545,9 +545,6 @@ function renderDetails(data, type, similarResults) {
                         </div>
                     </div>
                     <div class="p-actions-large">
-                        <button class="btn-mini-alt" onclick="window.loadProviderDetails('${name.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-external-link-alt"></i> Load Details (US)
-                        </button>
                         <button class="btn-mini-alt" onclick="window.copyProviderLink('${name.replace(/'/g, "\\'")}', event)">
                             <i class="fas fa-copy"></i> Copy Link
                         </button>
@@ -580,7 +577,7 @@ function renderDetails(data, type, similarResults) {
                                     ${countryOffers.map(off => `
                                         <span class="tag ${off.type.toLowerCase()}"
                                               ${off.link ? `onclick="window.open('${off.link}', '_blank'); event.stopPropagation();" style="cursor:pointer;" title="Watch on ${name}"` : ''}>
-                                            ${off.type}${off.price ? ` <span class="price">(${off.price})</span>` : ''}
+                                            ${off.type}
                                             ${off.link ? '<i class="fas fa-play" style="margin-left:3px;font-size:0.45rem;"></i>' : ''}
                                         </span>
                                     `).join('')}
