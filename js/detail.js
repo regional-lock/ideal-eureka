@@ -160,8 +160,7 @@ function renderDetails(data, type, similarResults) {
                                 presentationType: off.quality || null,
                                 videoTechnology: off.videoTechnology || [],
                                 audioTechnology: off.audioTechnology || [],
-                                audioLanguages: off.audioLanguages || [],
-                                subtitleLanguages: off.subtitleLanguages || []
+                                audioLanguages: off.audioLanguages || []
                             };
                         }
 
@@ -185,7 +184,6 @@ function renderDetails(data, type, similarResults) {
                                 target.videoTechnology = off.videoTechnology || [];
                                 target.audioTechnology = off.audioTechnology || [];
                                 target.audioLanguages = off.audioLanguages || [];
-                                target.subtitleLanguages = off.subtitleLanguages || [];
                                 target.presentationType = off.quality || null;
                             }
                         }
@@ -269,10 +267,6 @@ function renderDetails(data, type, similarResults) {
                     <div class="details-popup-row">
                         <div class="details-popup-label">Audio Languages</div>
                         <div class="details-popup-value audio-langs">${formatList(meta.audioLanguages)}</div>
-                    </div>
-                    <div class="details-popup-row">
-                        <div class="details-popup-label">Subtitles</div>
-                        <div class="details-popup-value audio-langs">${formatList(meta.subtitleLanguages)}</div>
                     </div>
                 </div>
                 <div class="details-popup-footer">
@@ -552,7 +546,7 @@ function renderDetails(data, type, similarResults) {
                     </div>
                     <div class="p-actions-large">
                         <button class="btn-mini-alt" onclick="window.loadProviderDetails('${name.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-info-circle"></i> Tech Details
+                            <i class="fas fa-external-link-alt"></i> Load Details (US)
                         </button>
                         <button class="btn-mini-alt" onclick="window.copyProviderLink('${name.replace(/'/g, "\\'")}', event)">
                             <i class="fas fa-copy"></i> Copy Link
@@ -561,34 +555,40 @@ function renderDetails(data, type, similarResults) {
                 </div>
                 <div class="country-grid-alt">
                     ${countries.map(c => {
-            const countryOffers = provider.countries[c];
-            // Collect any tech data from enriched offers for this country
-            const enrichedOffer = countryOffers.find(o => o.videoTechnology?.length || o.audioTechnology?.length || o.subtitleLanguages?.length || o.audioLanguages?.length);
-            const techBadges = enrichedOffer ? [
-                enrichedOffer.presentationType ? `<span class="meta-tag" title="Quality">${enrichedOffer.presentationType.replace('_4K', '4K')}</span>` : '',
-                ...(enrichedOffer.videoTechnology || []).map(v => `<span class="meta-tag" title="Video">${v.replace(/_/g, ' ')}</span>`),
-                ...(enrichedOffer.audioTechnology || []).map(a => `<span class="meta-tag" title="Audio">${a.replace(/_/g, ' ')}</span>`)
-            ].filter(Boolean).join('') : '';
-            return `
+                        const countryOffers = provider.countries[c];
+                        const enriched = countryOffers.find(o =>
+                            o.videoTechnology?.length || o.audioTechnology?.length || o.presentationType
+                        );
+                        const techBadges = enriched ? [
+                            enriched.presentationType
+                                ? `<span class="tech-badge">${enriched.presentationType.replace('_4K', '4K')}</span>`
+                                : '',
+                            ...(enriched.videoTechnology || []).map(v =>
+                                `<span class="tech-badge">${v.replace(/_/g, ' ')}</span>`),
+                            ...(enriched.audioTechnology || []).map(a =>
+                                `<span class="tech-badge">${a.replace(/_/g, ' ')}</span>`)
+                        ].filter(Boolean).join('') : '';
+
+                        return `
                         <div class="country-pill-alt">
-                            <div class="c-header">
-                                <span class="c-code">${c}</span>
-                                <span class="c-name">${countryNamesMap[c] || c}</span>
-                            </div>
-                            <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+                            <div class="country-pill-row">
+                                <div class="c-header">
+                                    <span class="c-code">${c}</span>
+                                    <span class="c-name">${countryNamesMap[c] || c}</span>
+                                </div>
                                 <div class="offer-tags">
                                     ${countryOffers.map(off => `
-                                        <span class="tag ${off.type.toLowerCase()}" 
+                                        <span class="tag ${off.type.toLowerCase()}"
                                               ${off.link ? `onclick="window.open('${off.link}', '_blank'); event.stopPropagation();" style="cursor:pointer;" title="Watch on ${name}"` : ''}>
-                                            ${off.type} ${off.price ? `<span class="price">(${off.price})</span>` : ''}
-                                            ${off.link ? '<i class="fas fa-play" style="margin-left:4px; font-size:0.5rem;"></i>' : ''}
+                                            ${off.type}${off.price ? ` <span class="price">(${off.price})</span>` : ''}
+                                            ${off.link ? '<i class="fas fa-play" style="margin-left:3px;font-size:0.45rem;"></i>' : ''}
                                         </span>
                                     `).join('')}
                                 </div>
-                                ${techBadges ? `<div class="offer-tags" style="opacity:0.7;">${techBadges}</div>` : ''}
                             </div>
+                            ${techBadges ? `<div class="country-pill-tech">${techBadges}</div>` : ''}
                         </div>`;
-        }).join('')}
+                    }).join('')}
                 </div>
             </div>
         `;
