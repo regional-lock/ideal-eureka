@@ -248,3 +248,56 @@ function openDetails(type, id) {
 }
 
 init();
+
+// ---------------------------------------------------------------------------
+// Slider — paste this block into app.js (module scope, outside any function)
+// ---------------------------------------------------------------------------
+
+let sliderOffset = 0; // current translateX in px (negative = scrolled right)
+
+window.moveSlider = function (direction) {
+    const track    = document.getElementById('trendingGrid');
+    const viewport = track?.closest('.slider-viewport');
+    if (!track || !viewport) return;
+
+    const card = track.querySelector('.movie-card');
+    if (!card) return;
+
+    // Width of one card + its gap = one step
+    const gap      = parseFloat(getComputedStyle(track).gap) || 0;
+    const cardW    = card.offsetWidth + gap;
+
+    // How many cards are visible at once
+    const visible  = Math.round(viewport.offsetWidth / cardW) || 1;
+
+    // Total scrollable distance
+    const maxScroll = track.scrollWidth - viewport.offsetWidth;
+
+    // Move by one full "page" of visible cards
+    const step = cardW * visible;
+
+    if (direction === 'next') {
+        sliderOffset = Math.min(sliderOffset + step, maxScroll);
+    } else {
+        sliderOffset = Math.max(sliderOffset - step, 0);
+    }
+
+    track.style.transform = `translateX(-${sliderOffset}px)`;
+
+    // Show/hide arrow buttons at the ends
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.style.opacity = sliderOffset <= 0 ? '0.3' : '1';
+    if (nextBtn) nextBtn.style.opacity = sliderOffset >= maxScroll ? '0.3' : '1';
+};
+
+// Reset slider position when new cards are loaded
+export function resetSlider() {
+    sliderOffset = 0;
+    const track = document.getElementById('trendingGrid');
+    if (track) track.style.transform = 'translateX(0)';
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (prevBtn) prevBtn.style.opacity = '0.3';
+    if (nextBtn) nextBtn.style.opacity = '1';
+}
