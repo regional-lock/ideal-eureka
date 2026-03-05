@@ -977,10 +977,10 @@ main>section {
 
 .country-grid-alt {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 0.5rem;
     padding: 1.2rem var(--main-padding);
-    max-height: 500px;
+    max-height: 450px;
     overflow-y: auto;
 }
 
@@ -997,14 +997,13 @@ main>section {
 .country-pill-alt {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 0.5rem 0.8rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 6px;
     display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
     transition: var(--transition);
-    min-width: 0;
-    overflow: hidden;
 }
 
 .country-pill-alt:hover {
@@ -1012,21 +1011,11 @@ main>section {
     border-color: #333;
 }
 
-/* Top row: code+name left, offer tags right */
-.country-pill-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-width: 0;
-}
-
 .c-header {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     flex-shrink: 0;
-    min-width: 0;
 }
 
 .country-pill-alt .c-code {
@@ -1036,7 +1025,6 @@ main>section {
     border-radius: 3px;
     font-size: 0.65rem;
     font-weight: 900;
-    flex-shrink: 0;
 }
 
 .country-pill-alt .c-name {
@@ -1044,37 +1032,12 @@ main>section {
     font-weight: 600;
     color: #bbb;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Bottom row: tech badges */
-.country-pill-tech {
-    display: flex;
-    gap: 0.3rem;
-    flex-wrap: wrap;
-    padding-left: 2px;
 }
 
 .offer-tags {
     display: flex;
     gap: 0.3rem;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-}
-
-/* Tech badge — distinct from offer type tags */
-.tech-badge {
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-size: 0.55rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.45);
-    white-space: nowrap;
+    flex-wrap: nowrap;
 }
 
 .tag {
@@ -1132,37 +1095,38 @@ main>section {
 
 
 /* Slider System */
-.slider-viewport {
+.trending-section {
     position: relative;
-    width: 100%;
-    padding: 1.5rem var(--main-padding) 3rem;
-    margin: 0;
+}
+
+.slider-viewport {
+    /* Real pixel width so card calc() has something to resolve against */
+    width: calc(100% - 2 * var(--main-padding));
+    margin: 0 var(--main-padding);
+    padding: 1.5rem 0 3rem;
     overflow: hidden;
-    /* Masking left/right edges slightly to allow shadows to fade out instead of hard clip */
-    -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
 }
 
 .slider-track {
     display: flex;
     gap: 1.2rem;
     transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    width: max-content;
+    will-change: transform;
 }
 
 .slider-control {
     position: absolute;
-    top: 55%;
+    top: 50%;
     transform: translateY(-50%);
     width: 42px;
     height: 42px;
-    background: rgba(20, 22, 25, 0.6);
+    background: rgba(20, 22, 25, 0.85);
     backdrop-filter: blur(12px);
     border: 1px solid var(--glass-border);
     color: white;
     border-radius: 50%;
     cursor: pointer;
-    z-index: 1000;
+    z-index: 10;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1179,41 +1143,38 @@ main>section {
     transform: translateY(-50%) scale(1.1);
 }
 
+/* Buttons sit on the viewport edge */
 .slider-control.prev {
-    left: calc(var(--main-padding) / 2);
+    left: calc(var(--main-padding) - 21px);
 }
 
 .slider-control.next {
-    right: calc(var(--main-padding) / 2);
+    right: calc(var(--main-padding) - 21px);
 }
 
 @media (max-width: 768px) {
     .slider-control {
         display: none;
-        /* Hide arrows on mobile for swipe-heavy UX, or make smaller */
     }
 }
 
-
+/* 100% now resolves against the viewport width above — correct card sizes */
 .slider-track .movie-card {
-    flex: 0 0 calc((100% - 8rem) / 9);
-    /* Exactly 9 items with 1rem gap */
-    min-width: calc((100% - 8rem) / 9);
+    flex: 0 0 calc((100% - 8 * 1.2rem) / 9);
+    min-width: calc((100% - 8 * 1.2rem) / 9);
 }
-
-
 
 @media (max-width: 1400px) {
     .slider-track .movie-card {
-        flex: 0 0 calc((100% - 6rem) / 7);
-        min-width: calc((100% - 6rem) / 7);
+        flex: 0 0 calc((100% - 6 * 1.2rem) / 7);
+        min-width: calc((100% - 6 * 1.2rem) / 7);
     }
 }
 
 @media (max-width: 1024px) {
     .slider-track .movie-card {
-        flex: 0 0 calc((100% - 4rem) / 5);
-        min-width: calc((100% - 4rem) / 5);
+        flex: 0 0 calc((100% - 4 * 1.2rem) / 5);
+        min-width: calc((100% - 4 * 1.2rem) / 5);
     }
 }
 
@@ -1227,8 +1188,8 @@ main>section {
     }
 
     .slider-track .movie-card {
-        flex: 0 0 calc((100% - 2rem) / 3);
-        min-width: calc((100% - 2rem) / 3);
+        flex: 0 0 calc((100% - 2 * 1.2rem) / 3);
+        min-width: calc((100% - 2 * 1.2rem) / 3);
     }
 }
 
