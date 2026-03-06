@@ -3,6 +3,29 @@ import { justwatch } from './justwatch.js';
 
 const detailContent = document.getElementById('detailContent');
 
+// Wire up the nav search bar on the detail page
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    let debounceTimer;
+    searchInput.oninput = (e) => {
+        clearTimeout(debounceTimer);
+        const query = e.target.value.trim();
+        debounceTimer = setTimeout(() => {
+            if (query.length > 2) {
+                window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+            }
+        }, 500);
+    };
+    searchInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            const query = searchInput.value.trim();
+            if (query.length > 0) {
+                window.location.href = `index.html?search=${encodeURIComponent(query)}`;
+            }
+        }
+    };
+}
+
 async function init() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get('id');
