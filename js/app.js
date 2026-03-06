@@ -23,8 +23,8 @@ let currentFilters = {
     region: ''
 };
 
-// Slider State
-let currentSlide = 0;
+// Slider State — single source of truth
+let sliderOffset = 0;
 const SLIDE_INTERVAL = 3000;
 let autoPlayTimer;
 
@@ -33,7 +33,10 @@ let debounceTimer;
 
 async function handleSearch(query) {
     if (query.trim().length > 2) {
-        if (!window.location.pathname.endsWith('index.html') && !window.location.pathname.endsWith('/')) {
+        // If not on the index page, redirect there with the search param
+        const path = window.location.pathname;
+        const onIndex = path.endsWith('index.html') || path === '/' || path.endsWith('/');
+        if (!onIndex) {
             window.location.href = `index.html?search=${encodeURIComponent(query)}`;
             return;
         }
@@ -49,7 +52,10 @@ async function handleSearch(query) {
             window.scrollTo({ top: 400, behavior: 'smooth' });
         }
     } else if (query.trim().length === 0) {
-        if (window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/')) {
+        // Reload index cleanly to restore all sections
+        const path = window.location.pathname;
+        const onIndex = path.endsWith('index.html') || path === '/' || path.endsWith('/');
+        if (onIndex) {
             window.location.href = 'index.html';
         }
     }
@@ -99,66 +105,87 @@ async function init() {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Slider — single unified implementation
+// ---------------------------------------------------------------------------
 function initSlider() {
     const track = document.getElementById('trendingGrid');
+    if (!track) return;
 
-    const moveSlider = (direction) => {
-        const items = track.children;
-        const totalItems = items.length;
-        if (totalItems === 0) return;
+    // Reset position
+    sliderOffset = 0;
+    track.style.transform = 'translateX(0)';
+    updateArrows();
 
-        const visibleItems = getVisibleItems();
-        const maxSlide = totalItems - visibleItems;
-
-        if (direction === 'next') {
-            currentSlide = (currentSlide >= maxSlide) ? 0 : currentSlide + 1;
-        } else {
-            currentSlide = (currentSlide <= 0) ? maxSlide : currentSlide - 1;
-        }
-
-        const gap = parseFloat(getComputedStyle(track).gap) || 16;
-        const itemWidth = items[0].offsetWidth + gap;
-        track.style.transform = `translateX(-${currentSlide * itemWidth}px)`;
-    };
-
-    window.moveSlider = moveSlider;
-
-    // Auto Play
     startAutoPlay();
 
     track.onmouseenter = stopAutoPlay;
     track.onmouseleave = startAutoPlay;
 
-    window.onresize = () => {
-        currentSlide = 0;
+    window.addEventListener('resize', () => {
+        sliderOffset = 0;
         track.style.transform = 'translateX(0)';
-    };
+        updateArrows();
+    });
 }
 
-function getVisibleItems() {
-    if (window.innerWidth > 1400) return 9;
-    if (window.innerWidth > 1024) return 7;
-    if (window.innerWidth > 768) return 5;
-    return 3;
+function updateArrows() {
+    const track = document.getElementById('trendingGrid');
+    const viewport = track?.closest('.slider-viewport');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    if (!track || !viewport) return;
+
+    const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
+    if (prevBtn) prevBtn.style.opacity = sliderOffset <= 0 ? '0.3' : '1';
+    if (nextBtn) nextBtn.style.opacity = sliderOffset >= maxScroll ? '0.3' : '1';
 }
+
+window.moveSlider = function (direction) {
+    const track    = document.getElementById('trendingGrid');
+    const viewport = track?.closest('.slider-viewport');
+    if (!track || !viewport) return;
+
+    const card = track.querySelector('.movie-card');
+    if (!card) return;
+
+    const gap       = parseFloat(getComputedStyle(track).gap) || 0;
+    const cardW     = card.offsetWidth + gap;
+    const visible   = Math.max(1, Math.round(viewport.offsetWidth / cardW));
+    const step      = cardW * visible;
+    const maxScroll = Math.max(0, track.scrollWidth - viewport.offsetWidth);
+
+    if (direction === 'next') {
+        // Wrap around to start when reaching the end
+        sliderOffset = (sliderOffset + step > maxScroll) ? 0 : sliderOffset + step;
+    } else {
+        // Wrap around to end when at the start
+        sliderOffset = (sliderOffset - step < 0) ? maxScroll : sliderOffset - step;
+    }
+
+    track.style.transform = `translateX(-${sliderOffset}px)`;
+    updateArrows();
+};
 
 function startAutoPlay() {
     stopAutoPlay();
-    autoPlayTimer = setInterval(() => {
-        const nextBtn = document.getElementById('nextBtn');
-        if (nextBtn) nextBtn.click();
-    }, SLIDE_INTERVAL);
+    autoPlayTimer = setInterval(() => window.moveSlider('next'), SLIDE_INTERVAL);
 }
 
 function stopAutoPlay() {
     clearInterval(autoPlayTimer);
 }
 
-function resetAutoPlay() {
-    stopAutoPlay();
-    startAutoPlay();
+export function resetSlider() {
+    sliderOffset = 0;
+    const track = document.getElementById('trendingGrid');
+    if (track) track.style.transform = 'translateX(0)';
+    updateArrows();
 }
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 function populateDropdown(select, items, valueKey, textKey) {
     items.forEach(item => {
         const option = document.createElement('option');
@@ -177,7 +204,6 @@ async function updateDiscovery() {
         discoveryTitle.innerText = `Filtered ${type === 'movie' ? 'Movies' : 'TV Shows'}`;
         displayMovies(data.results, discoveryGrid, type);
 
-        // Hide other sections when filtering
         document.querySelectorAll('main > section:not(#discoverySection)').forEach(s => s.style.display = 'none');
         hero.style.height = '40vh';
     }
@@ -222,7 +248,7 @@ function displayMovies(movies, container, type = 'movie') {
     movies.forEach(movie => {
         if (!movie.poster_path && !movie.profile_path) return;
         const mediaType = movie.media_type || type;
-        if (mediaType === 'person') return; // Skip people in results
+        if (mediaType === 'person') return;
 
         const title = movie.title || movie.name;
         const card = document.createElement('div');
@@ -248,56 +274,3 @@ function openDetails(type, id) {
 }
 
 init();
-
-// ---------------------------------------------------------------------------
-// Slider — paste this block into app.js (module scope, outside any function)
-// ---------------------------------------------------------------------------
-
-let sliderOffset = 0; // current translateX in px (negative = scrolled right)
-
-window.moveSlider = function (direction) {
-    const track    = document.getElementById('trendingGrid');
-    const viewport = track?.closest('.slider-viewport');
-    if (!track || !viewport) return;
-
-    const card = track.querySelector('.movie-card');
-    if (!card) return;
-
-    // Width of one card + its gap = one step
-    const gap      = parseFloat(getComputedStyle(track).gap) || 0;
-    const cardW    = card.offsetWidth + gap;
-
-    // How many cards are visible at once
-    const visible  = Math.round(viewport.offsetWidth / cardW) || 1;
-
-    // Total scrollable distance
-    const maxScroll = track.scrollWidth - viewport.offsetWidth;
-
-    // Move by one full "page" of visible cards
-    const step = cardW * visible;
-
-    if (direction === 'next') {
-        sliderOffset = Math.min(sliderOffset + step, maxScroll);
-    } else {
-        sliderOffset = Math.max(sliderOffset - step, 0);
-    }
-
-    track.style.transform = `translateX(-${sliderOffset}px)`;
-
-    // Show/hide arrow buttons at the ends
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    if (prevBtn) prevBtn.style.opacity = sliderOffset <= 0 ? '0.3' : '1';
-    if (nextBtn) nextBtn.style.opacity = sliderOffset >= maxScroll ? '0.3' : '1';
-};
-
-// Reset slider position when new cards are loaded
-export function resetSlider() {
-    sliderOffset = 0;
-    const track = document.getElementById('trendingGrid');
-    if (track) track.style.transform = 'translateX(0)';
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    if (prevBtn) prevBtn.style.opacity = '0.3';
-    if (nextBtn) nextBtn.style.opacity = '1';
-}
