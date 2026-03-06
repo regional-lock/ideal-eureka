@@ -1,4 +1,5 @@
 import { tmdb } from './tmdb.js';
+import { initSearchDropdown } from './search-dropdown.js';
 
 const trendingGrid = document.getElementById('trendingGrid');
 const popularGrid = document.getElementById('popularGrid');
@@ -34,7 +35,7 @@ let sliderOffset = 0;
 const SLIDE_INTERVAL = 3000;
 let autoPlayTimer;
 
-// Search handler with debounce
+// Search handler with debounce (for full-page search on Enter)
 let debounceTimer;
 
 async function handleSearch(query, page = 1) {
@@ -77,11 +78,11 @@ async function handleSearch(query, page = 1) {
     }
 }
 
-searchInput.oninput = (e) => {
-    const query = e.target.value;
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => handleSearch(query), 500);
-};
+// Wire up live search dropdown — Enter triggers full filtered results
+initSearchDropdown({
+    onSelect: (type, id) => openDetails(type, id),
+    onSearch: (query)    => handleSearch(query, 1)
+});
 
 // Initialization
 async function init() {
@@ -225,7 +226,7 @@ async function updateDiscovery(page = 1) {
         currentPage = page;
         totalPages = Math.min(Math.floor(data.total_pages / 2), 250);
 
-        const combined = [...(data.results || []), ...(data2?.results || [])].slice(0, 27);
+        const combined = [...(data.results || []), ...(data2?.results || [])].slice(0, 26);
 
         discoverySection.style.display = 'block';
         discoveryTitle.innerText = `Filtered ${type === 'movie' ? 'Movies' : 'TV Shows'}`;
