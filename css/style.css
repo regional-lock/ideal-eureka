@@ -1417,3 +1417,57 @@ main>section {
     font-weight: 500;
     color: white;
 }
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 2.5rem var(--main-padding) 1rem;
+    flex-wrap: wrap;
+}
+
+.page-btn {
+    min-width: 2.4rem;
+    height: 2.4rem;
+    padding: 0 0.6rem;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    background: var(--glass);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: 'Sora', sans-serif;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-btn:hover:not(:disabled):not(.active) {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: var(--text-main);
+}
+
+.page-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    box-shadow: 0 0 16px var(--accent-glow);
+    cursor: default;
+}
+
+.page-btn:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+.page-ellipsis {
+    color: var(--text-dim);
+    padding: 0 0.3rem;
+    font-size: 0.9rem;
+    user-select: none;
+}
