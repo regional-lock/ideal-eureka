@@ -46,16 +46,21 @@ async function handleSearch(query, page = 1) {
             window.location.href = `index.html?search=${encodeURIComponent(query)}`;
             return;
         }
-        const data = await tmdb.searchMulti(query, page);
+        const [data, data2] = await Promise.all([
+            tmdb.searchMulti(query, page * 2 - 1),
+            tmdb.searchMulti(query, page * 2)
+        ]);
         if (data) {
             currentMode = 'search';
             currentQuery = query;
-            currentPage = data.page;
-            totalPages = Math.min(data.total_pages, 500); // TMDB caps at 500
+            currentPage = page;
+            totalPages = Math.min(Math.floor(data.total_pages / 2), 250);
+
+            const combined = [...(data.results || []), ...(data2?.results || [])].slice(0, 26);
 
             discoverySection.style.display = 'block';
             discoveryTitle.innerText = `Results for "${query}"`;
-            displayMovies(data.results, discoveryGrid);
+            displayMovies(combined, discoveryGrid);
             renderPagination();
 
             // Hide other sections
@@ -208,16 +213,23 @@ function populateDropdown(select, items, valueKey, textKey) {
 
 async function updateDiscovery(page = 1) {
     const type = typeFilter.value;
-    const data = await tmdb.discover(type, currentFilters, page);
+
+    // Fetch current page + next page to get enough results for 26 items per page
+    const [data, data2] = await Promise.all([
+        tmdb.discover(type, currentFilters, page * 2 - 1),
+        tmdb.discover(type, currentFilters, page * 2)
+    ]);
 
     if (data) {
         currentMode = 'discover';
-        currentPage = data.page;
-        totalPages = Math.min(data.total_pages, 500);
+        currentPage = page;
+        totalPages = Math.min(Math.floor(data.total_pages / 2), 250);
+
+        const combined = [...(data.results || []), ...(data2?.results || [])].slice(0, 27);
 
         discoverySection.style.display = 'block';
         discoveryTitle.innerText = `Filtered ${type === 'movie' ? 'Movies' : 'TV Shows'}`;
-        displayMovies(data.results, discoveryGrid, type);
+        displayMovies(combined, discoveryGrid, type);
         renderPagination();
 
         document.querySelectorAll('main > section:not(#discoverySection)').forEach(s => s.style.display = 'none');
