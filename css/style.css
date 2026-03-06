@@ -170,6 +170,15 @@ nav {
     min-width: 160px;
     font-size: 0.85rem;
     font-weight: 600;
+    appearance: auto;
+    color-scheme: dark;
+}
+
+.filter-group select option {
+    background: #0f1117;
+    color: #ffffff;
+    font-size: 0.85rem;
+    padding: 0.5rem;
 }
 
 .filter-group select:hover {
