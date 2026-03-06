@@ -40,8 +40,8 @@ export const tmdb = {
         return this.fetchMovies('/search/movie', { query });
     },
 
-    searchMulti(query) {
-        return this.fetchMovies('/search/multi', { query });
+    searchMulti(query, page = 1) {
+        return this.fetchMovies('/search/multi', { query, page });
     },
 
     getDetails(type, id) {
@@ -64,8 +64,8 @@ export const tmdb = {
         return this.fetchMovies('/configuration/countries');
     },
 
-    discover(type, params) {
-        return this.fetchMovies(`/discover/${type}`, params);
+    discover(type, params, page = 1) {
+        return this.fetchMovies(`/discover/${type}`, { ...params, page });
     },
 
     getImageUrl(path) {
