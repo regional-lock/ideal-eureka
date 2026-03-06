@@ -25,7 +25,7 @@ async function init() {
     // Show loading state
     detailContent.innerHTML = `
         <div class="loading-detail">
-            <div class="logo">MovieVerse</div>
+            <div class="logo">Releasemap</div>
             <div class="loader-bar"></div>
             <p>Gathering details...</p>
         </div>
@@ -638,3 +638,4 @@ function renderDetails(data, type, similarResults) {
 }
 
 init();
+
