@@ -23,6 +23,12 @@ let currentFilters = {
     region: ''
 };
 
+// Pagination state
+let currentPage = 1;
+let totalPages = 1;
+let currentMode = null;   // 'search' | 'discover'
+let currentQuery = '';    // last search query
+
 // Slider State — single source of truth
 let sliderOffset = 0;
 const SLIDE_INTERVAL = 3000;
@@ -31,7 +37,7 @@ let autoPlayTimer;
 // Search handler with debounce
 let debounceTimer;
 
-async function handleSearch(query) {
+async function handleSearch(query, page = 1) {
     if (query.trim().length > 2) {
         // If not on the index page, redirect there with the search param
         const path = window.location.pathname;
@@ -40,19 +46,24 @@ async function handleSearch(query) {
             window.location.href = `index.html?search=${encodeURIComponent(query)}`;
             return;
         }
-        const data = await tmdb.searchMulti(query);
+        const data = await tmdb.searchMulti(query, page);
         if (data) {
+            currentMode = 'search';
+            currentQuery = query;
+            currentPage = data.page;
+            totalPages = Math.min(data.total_pages, 500); // TMDB caps at 500
+
             discoverySection.style.display = 'block';
             discoveryTitle.innerText = `Results for "${query}"`;
             displayMovies(data.results, discoveryGrid);
+            renderPagination();
 
             // Hide other sections
             document.querySelectorAll('main > section:not(#discoverySection)').forEach(s => s.style.display = 'none');
             hero.style.height = '30vh';
-            window.scrollTo({ top: 400, behavior: 'smooth' });
+            if (page === 1) window.scrollTo({ top: 400, behavior: 'smooth' });
         }
     } else if (query.trim().length === 0) {
-        // Reload index cleanly to restore all sections
         const path = window.location.pathname;
         const onIndex = path.endsWith('index.html') || path === '/' || path.endsWith('/');
         if (onIndex) {
@@ -195,17 +206,23 @@ function populateDropdown(select, items, valueKey, textKey) {
     });
 }
 
-async function updateDiscovery() {
+async function updateDiscovery(page = 1) {
     const type = typeFilter.value;
-    const data = await tmdb.discover(type, currentFilters);
+    const data = await tmdb.discover(type, currentFilters, page);
 
     if (data) {
+        currentMode = 'discover';
+        currentPage = data.page;
+        totalPages = Math.min(data.total_pages, 500);
+
         discoverySection.style.display = 'block';
         discoveryTitle.innerText = `Filtered ${type === 'movie' ? 'Movies' : 'TV Shows'}`;
         displayMovies(data.results, discoveryGrid, type);
+        renderPagination();
 
         document.querySelectorAll('main > section:not(#discoverySection)').forEach(s => s.style.display = 'none');
         hero.style.height = '40vh';
+        if (page > 1) window.scrollTo({ top: document.getElementById('discoverySection').offsetTop - 80, behavior: 'smooth' });
     }
 }
 
@@ -215,22 +232,26 @@ typeFilter.onchange = async (e) => {
     const genres = await tmdb.getGenres(type);
     genreFilter.innerHTML = '<option value="">All Genres</option>';
     populateDropdown(genreFilter, genres.genres, 'id', 'name');
-    updateDiscovery();
+    currentPage = 1;
+    updateDiscovery(1);
 };
 
 genreFilter.onchange = (e) => {
     currentFilters.with_genres = e.target.value;
-    updateDiscovery();
+    currentPage = 1;
+    updateDiscovery(1);
 };
 
 languageFilter.onchange = (e) => {
     currentFilters.with_original_language = e.target.value;
-    updateDiscovery();
+    currentPage = 1;
+    updateDiscovery(1);
 };
 
 countryFilter.onchange = (e) => {
     currentFilters.region = e.target.value;
-    updateDiscovery();
+    currentPage = 1;
+    updateDiscovery(1);
 };
 
 function setHero(movie) {
@@ -272,5 +293,62 @@ function displayMovies(movies, container, type = 'movie') {
 function openDetails(type, id) {
     window.location.href = `detail.html?id=${id}&type=${type}`;
 }
+
+// ---------------------------------------------------------------------------
+// Pagination
+// ---------------------------------------------------------------------------
+function renderPagination() {
+    // Remove any existing pagination
+    const existing = document.getElementById('discoveryPagination');
+    if (existing) existing.remove();
+
+    if (totalPages <= 1) return;
+
+    const nav = document.createElement('div');
+    nav.id = 'discoveryPagination';
+    nav.className = 'pagination';
+
+    const pages = getPageNumbers(currentPage, totalPages);
+
+    nav.innerHTML = `
+        <button class="page-btn" onclick="window.goToPage(${currentPage - 1})" ${currentPage <= 1 ? 'disabled' : ''}>‹</button>
+        ${pages.map(p =>
+            p === '...'
+                ? `<span class="page-ellipsis">…</span>`
+                : `<button class="page-btn ${p === currentPage ? 'active' : ''}" onclick="window.goToPage(${p})">${p}</button>`
+        ).join('')}
+        <button class="page-btn" onclick="window.goToPage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>›</button>
+    `;
+
+    discoverySection.appendChild(nav);
+}
+
+// Returns an array like [1, 2, 3, '...', 48, 49, 50] centered around current page
+function getPageNumbers(current, total) {
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+
+    const pages = [];
+    const delta = 2; // pages on each side of current
+
+    const left  = Math.max(2, current - delta);
+    const right = Math.min(total - 1, current + delta);
+
+    pages.push(1);
+    if (left > 2) pages.push('...');
+    for (let i = left; i <= right; i++) pages.push(i);
+    if (right < total - 1) pages.push('...');
+    pages.push(total);
+
+    return pages;
+}
+
+window.goToPage = (page) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    if (currentMode === 'search') {
+        handleSearch(currentQuery, page);
+    } else if (currentMode === 'discover') {
+        updateDiscovery(page);
+    }
+};
 
 init();
