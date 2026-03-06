@@ -463,7 +463,7 @@ function renderDetails(data, type, similarResults) {
             </div>
         </div>
 
-        <h3 style="margin: 2.5rem 0 1.2rem; padding: 0 var(--main-padding); font-size: 1.2rem; font-weight: 700;">Top Cast</h3>
+        <h2 class="section-title">Top Cast</h2>
         <div class="cast-grid">
             ${data.credits.cast.slice(0, 12).map(c => `
                     <div class="cast-card">
@@ -502,7 +502,7 @@ function renderDetails(data, type, similarResults) {
         <section class="similar-section">
             <h2 class="section-title">More Like This</h2>
             <div class="movie-row" id="similarGrid">
-                ${similarResults.slice(0, 9).map(m => `
+                ${similarResults.slice(0, 18).map(m => `
                     <div class="movie-card" onclick="window.location.href='detail.html?id=${m.id}&type=${type}'">
                         <img src="${tmdb.getImageUrl(m.poster_path)}" alt="${m.title || m.name}">
                         <div class="movie-info">
