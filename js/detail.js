@@ -502,7 +502,7 @@ function renderDetails(data, type, similarResults) {
         <section class="similar-section">
             <h2 class="section-title">More Like This</h2>
             <div class="movie-row" id="similarGrid">
-                ${similarResults.slice(0, 18).map(m => `
+                ${similarResults.slice(0, 10).map(m => `
                     <div class="movie-card" onclick="window.location.href='detail.html?id=${m.id}&type=${type}'">
                         <img src="${tmdb.getImageUrl(m.poster_path)}" alt="${m.title || m.name}">
                         <div class="movie-info">
