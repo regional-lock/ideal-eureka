@@ -1581,3 +1581,24 @@ main>section {
     font-size: 0.9rem;
     user-select: none;
 }
+
+/* Footer */
+.site-footer {
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-top: 3rem;
+    border-top: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    letter-spacing: 0.03em;
+}
+
+.site-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+
+.site-footer a:hover {
+    opacity: 0.75;
+}
