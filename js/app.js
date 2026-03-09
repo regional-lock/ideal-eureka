@@ -84,6 +84,108 @@ initSearchDropdown({
     onSearch: (query)    => handleSearch(query, 1)
 });
 
+// ── Hero Search Bar ──────────────────────────────────────────────────────────
+(function initHeroSearch() {
+    const heroInput    = document.getElementById('heroSearchInput');
+    const heroBtn      = document.getElementById('heroSearchBtn');
+    const heroDropdown = document.getElementById('heroSearchDropdown');
+    if (!heroInput || !heroBtn || !heroDropdown) return;
+
+    let heroDebounce = null;
+    let heroResults  = [];
+    let heroActive   = -1;
+
+    function showHeroDrop() { heroDropdown.style.display = 'block'; }
+    function hideHeroDrop() { heroDropdown.style.display = 'none'; heroActive = -1; }
+
+    function renderHeroDrop(results) {
+        heroResults = results.filter(r => r.media_type !== 'person');
+        if (!heroResults.length) {
+            heroDropdown.innerHTML = `<div class="search-dropdown-empty">No results found</div>`;
+            showHeroDrop(); return;
+        }
+        heroDropdown.innerHTML = heroResults.map((item, i) => {
+            const title     = item.title || item.name || '';
+            const mediaType = item.media_type || 'movie';
+            const year      = (item.release_date || item.first_air_date || '').split('-')[0];
+            const rating    = item.vote_average ? item.vote_average.toFixed(1) : null;
+            const poster    = item.poster_path
+                ? `https://image.tmdb.org/t/p/w92${item.poster_path}`
+                : 'https://via.placeholder.com/40x58?text=N/A';
+            return `
+                <div class="search-dropdown-item" data-index="${i}" data-id="${item.id}" data-type="${mediaType}">
+                    <img src="${poster}" alt="${title}" loading="lazy">
+                    <div class="search-dropdown-info">
+                        <div class="search-dropdown-title">${title}</div>
+                        <div class="search-dropdown-meta">
+                            <span class="search-dropdown-badge ${mediaType}">${mediaType === 'tv' ? 'Series' : 'Movie'}</span>
+                            ${year ? `<span>${year}</span>` : ''}
+                            ${rating ? `<span class="search-dropdown-rating">★ ${rating}</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+        showHeroDrop();
+        heroDropdown.querySelectorAll('.search-dropdown-item').forEach(el => {
+            el.addEventListener('mousedown', e => {
+                e.preventDefault();
+                hideHeroDrop();
+                heroInput.value = '';
+                openDetails(el.dataset.type, el.dataset.id);
+            });
+        });
+    }
+
+    heroInput.addEventListener('input', e => {
+        const q = e.target.value.trim();
+        heroActive = -1;
+        clearTimeout(heroDebounce);
+        if (q.length < 2) { hideHeroDrop(); return; }
+        heroDropdown.innerHTML = `<div class="search-dropdown-loading">Searching…</div>`;
+        showHeroDrop();
+        heroDebounce = setTimeout(async () => {
+            const data = await tmdb.searchMulti(q, 1);
+            if (!data) { hideHeroDrop(); return; }
+            renderHeroDrop(data.results.slice(0, 8));
+        }, 300);
+    });
+
+    heroInput.addEventListener('keydown', e => {
+        const items = heroDropdown.querySelectorAll('.search-dropdown-item');
+        if (heroDropdown.style.display === 'none') {
+            if (e.key === 'Enter') { handleSearch(heroInput.value.trim(), 1); }
+            return;
+        }
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            heroActive = Math.min(heroActive + 1, items.length - 1);
+            items.forEach((el, i) => el.style.background = i === heroActive ? 'rgba(255,255,255,0.08)' : '');
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            heroActive = Math.max(heroActive - 1, 0);
+            items.forEach((el, i) => el.style.background = i === heroActive ? 'rgba(255,255,255,0.08)' : '');
+        } else if (e.key === 'Enter') {
+            if (heroActive >= 0 && items[heroActive]) {
+                items[heroActive].dispatchEvent(new MouseEvent('mousedown'));
+            } else {
+                hideHeroDrop();
+                handleSearch(heroInput.value.trim(), 1);
+            }
+        } else if (e.key === 'Escape') {
+            hideHeroDrop();
+        }
+    });
+
+    heroBtn.addEventListener('click', () => {
+        hideHeroDrop();
+        handleSearch(heroInput.value.trim(), 1);
+    });
+
+    document.addEventListener('click', e => {
+        if (!heroInput.closest('.hero-search-bar').contains(e.target)) hideHeroDrop();
+    });
+})();
+
 // Initialization
 async function init() {
     const urlParams = new URLSearchParams(window.location.search);
