@@ -152,12 +152,39 @@ function renderDetails(data, type, similarResults) {
                 for (const pName in providerGroups) {
                     const tmdbName = pName.toLowerCase();
 
-                    // Improved Fuzzy Matching: Check for overlap and common brand names
-                    const isMatch = tmdbName.includes(jwName) ||
-                        jwName.includes(tmdbName) ||
-                        (tmdbName.startsWith('amazon') && jwName.startsWith('amazon')) ||
-                        (tmdbName.startsWith('apple') && jwName.startsWith('apple')) ||
-                        (tmdbName.startsWith('hbo') && jwName.startsWith('hbo'));
+                    // Normalise both names: strip punctuation, replace + with plus
+                    const norm = s => s.toLowerCase()
+                        .replace(/\+/g, 'plus')
+                        .replace(/[^a-z0-9 ]/g, '')
+                        .replace(/\s+/g, ' ')
+                        .trim();
+
+                    const ALIASES = {
+                        'disney plus':     ['disney plus', 'disneyplus', 'disney'],
+                        'netflix':         ['netflix'],
+                        'amazon prime':    ['amazon prime', 'amazon prime video', 'prime video', 'amazon video', 'amazon'],
+                        'apple tv plus':   ['apple tv plus', 'apple tvplus', 'apple tv'],
+                        'max':             ['max', 'hbo max', 'hbo'],
+                        'hulu':            ['hulu'],
+                        'paramount plus':  ['paramount plus', 'paramountplus', 'paramount'],
+                        'peacock':         ['peacock'],
+                        'mubi':            ['mubi'],
+                    };
+
+                    const nJw   = norm(jwName);
+                    const nTmdb = norm(tmdbName);
+
+                    // Direct substring match
+                    let isMatch = nTmdb.includes(nJw) || nJw.includes(nTmdb);
+
+                    // Alias-based matching
+                    if (!isMatch) {
+                        for (const aliases of Object.values(ALIASES)) {
+                            const jwHit   = aliases.some(a => nJw.includes(a)   || a.includes(nJw));
+                            const tmdbHit = aliases.some(a => nTmdb.includes(a) || a.includes(nTmdb));
+                            if (jwHit && tmdbHit) { isMatch = true; break; }
+                        }
+                    }
 
                     if (isMatch) {
                         // Store tech metadata at provider level as soon as we find any
@@ -197,6 +224,61 @@ function renderDetails(data, type, similarResults) {
                 }
             });
         });
+        // ── Inject providers found in JustWatch but missing from TMDB ────────────
+        Object.keys(jwData).forEach(countryCode => {
+            const offers = jwData[countryCode];
+            offers.forEach(off => {
+                const norm = s => s.toLowerCase().replace(/\+/g, 'plus').replace(/[^a-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
+                const nJw = norm(off.provider);
+
+                // Check if this JW provider already matched a TMDB provider
+                const alreadyMatched = Object.keys(providerGroups).some(pName => {
+                    const nTmdb = norm(pName);
+                    return nTmdb.includes(nJw) || nJw.includes(nTmdb);
+                });
+
+                if (!alreadyMatched) {
+                    // Create a new provider group from JustWatch data
+                    const pName = off.provider;
+                    if (!providerGroups[pName]) {
+                        providerGroups[pName] = { logo: null, jwLogo: off.logo, countries: {}, promoLink: null, metaDetails: null };
+                    }
+                    if (!providerGroups[pName].countries[countryCode]) {
+                        providerGroups[pName].countries[countryCode] = [];
+                    }
+                    let jwType = off.type.toUpperCase();
+                    if (jwType === 'FLATRATE') jwType = 'STREAM';
+                    if (!providerGroups[pName].countries[countryCode].find(o => o.type === jwType)) {
+                        providerGroups[pName].countries[countryCode].push({
+                            type: jwType,
+                            link: off.link,
+                            price: off.price,
+                            presentationType: off.quality || null,
+                            videoTechnology: off.videoTechnology || [],
+                            audioTechnology: off.audioTechnology || [],
+                            audioLanguages: off.audioLanguages || [],
+                            subtitleLanguages: off.subtitleLanguages || []
+                        });
+                    }
+                    if (!providerGroups[pName].promoLink) providerGroups[pName].promoLink = off.link;
+                    if (!providerGroups[pName].metaDetails) {
+                        providerGroups[pName].metaDetails = {
+                            presentationType: off.quality || null,
+                            videoTechnology: off.videoTechnology || [],
+                            audioTechnology: off.audioTechnology || [],
+                            audioLanguages: off.audioLanguages || []
+                        };
+                    }
+                }
+            });
+        });
+
+        // Re-render streaming section with newly injected providers
+        const existingSection = document.querySelector('.streaming-section');
+        if (existingSection) {
+            existingSection.outerHTML = renderRegionalStreaming();
+        }
+
         console.log("Pricing enrichment complete");
 
         // If a panel is currently open, Re-trigger the switch to update prices in the UI
@@ -252,7 +334,7 @@ function renderDetails(data, type, similarResults) {
             <div class="details-popup">
                 <div class="details-popup-header">
                     <div class="details-popup-brand">
-                        <img src="https://image.tmdb.org/t/p/original${provider.logo}" alt="${name}">
+                        <img src="${provider.logo ? `https://image.tmdb.org/t/p/original${provider.logo}` : provider.jwLogo || ''}" alt="${name}" onerror="this.style.display='none'">
                         <span>${name}</span>
                     </div>
                     <button class="details-popup-close" id="detailsPopupClose">&#x2715;</button>
@@ -342,7 +424,7 @@ function renderDetails(data, type, similarResults) {
             return `
                             <div id="card-${safeId}" class="service-card" onclick="window.switchService('${name.replace(/'/g, "\\'")}')" data-provider="${name}">
                                 <div class="card-inner">
-                                    <img src="https://image.tmdb.org/t/p/original${provider.logo}" alt="${name}">
+                                    <img src="${provider.logo ? `https://image.tmdb.org/t/p/original${provider.logo}` : provider.jwLogo || ''}" alt="${name}" onerror="this.style.display='none'">
                                     <div class="card-info">
                                         <span class="provider-name">${name}</span>
                                         <span class="country-count">${countries.length} countries</span>
@@ -462,19 +544,26 @@ function renderDetails(data, type, similarResults) {
     </section>
         
         ${type === 'tv' && data.seasons ? `
-        <section class="seasons-section" style="padding-bottom: 2rem;">
-            <h3 style="margin: 1rem 0 1.2rem; padding: 0 var(--main-padding); font-size: 1.2rem; font-weight: 700;">Seasons</h3>
-            <div class="movie-row">
-                ${data.seasons.map(s => `
-                    <div class="movie-card">
-                        <img src="${s.poster_path ? tmdb.getImageUrl(s.poster_path) : 'https://via.placeholder.com/500x750?text=No+Poster'}" alt="${s.name}">
-                        <div class="movie-info">
-                            <h3>${s.name}</h3>
-                            <div class="movie-meta">
-                                <span>${s.episode_count} Episodes</span>
-                                <span>${s.air_date ? s.air_date.split('-')[0] : ''}</span>
+        <section class="seasons-section">
+            <h2 class="section-title">Seasons</h2>
+            <div class="season-list" id="seasonList">
+                ${data.seasons.filter(s => s.season_number > 0).map(s => `
+                    <div class="season-row" id="season-row-${s.season_number}">
+                        <div class="season-header" onclick="window.toggleSeason(${data.id}, ${s.season_number})" data-season="${s.season_number}">
+                            <div class="season-poster-wrap">
+                                <img src="${s.poster_path ? tmdb.getImageUrl(s.poster_path) : 'https://via.placeholder.com/120x180?text=No+Poster'}" alt="${s.name}">
                             </div>
+                            <div class="season-meta">
+                                <span class="season-name">${s.name}</span>
+                                <span class="season-info">
+                                    <span class="season-ep-count">${s.episode_count} Episodes</span>
+                                    ${s.air_date ? `<span class="season-year">${s.air_date.split('-')[0]}</span>` : ''}
+                                </span>
+                                ${s.overview ? `<p class="season-overview">${s.overview}</p>` : ''}
+                            </div>
+                            <span class="season-chevron" id="chevron-${s.season_number}">›</span>
                         </div>
+                        <div class="episode-list" id="episodes-${s.season_number}" style="display:none;"></div>
                     </div>
                 `).join('')}
             </div>
@@ -568,7 +657,7 @@ function renderDetails(data, type, similarResults) {
             <div class="panel-content fadeInUp">
                 <div class="panel-header">
                     <div class="p-brand-large">
-                        <img src="https://image.tmdb.org/t/p/original${provider.logo}" alt="${name}">
+                        <img src="${provider.logo ? `https://image.tmdb.org/t/p/original${provider.logo}` : provider.jwLogo || ''}" alt="${name}" onerror="this.style.display='none'">
                         <div class="p-info-large">
                             <h3>${name}</h3>
                             <p>${countries.length} countries · ${Array.from(allTags).map(type => `<span class="tag ${type.toLowerCase()}">${type}</span>`).join(' ')}</p>
@@ -637,5 +726,96 @@ function renderDetails(data, type, similarResults) {
     };
 }
 
-init();
+// ── Season / Episode accordion ────────────────────────────────────────────────
+const loadedSeasons = {};
 
+window.toggleSeason = async (seriesId, seasonNumber) => {
+    const episodeList = document.getElementById(`episodes-${seasonNumber}`);
+    const chevron     = document.getElementById(`chevron-${seasonNumber}`);
+    if (!episodeList) return;
+
+    const isOpen = episodeList.style.display !== 'none';
+
+    // Close all others
+    document.querySelectorAll('.episode-list').forEach(el => el.style.display = 'none');
+    document.querySelectorAll('.season-chevron').forEach(el => { el.textContent = '›'; el.classList.remove('open'); });
+    document.querySelectorAll('.season-header').forEach(el => el.classList.remove('active'));
+
+    if (isOpen) return; // toggle off
+
+    // Mark active
+    const header = episodeList.previousElementSibling;
+    if (header) header.classList.add('active');
+    chevron.textContent = '‹';
+    chevron.classList.add('open');
+    episodeList.style.display = 'block';
+
+    // Already loaded
+    if (loadedSeasons[seasonNumber]) return;
+
+    // Skeleton
+    episodeList.innerHTML = Array(6).fill(0).map(() => `
+        <div class="episode-item episode-skeleton">
+            <div class="skeleton ep-num-skel"></div>
+            <div class="ep-thumb-skel skeleton"></div>
+            <div class="ep-info-skel">
+                <div class="skeleton ep-title-skel"></div>
+                <div class="skeleton ep-date-skel"></div>
+            </div>
+        </div>
+    `).join('');
+
+    try {
+        const res = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}?api_key=a820f2b45d233c0cc0c97d078536074f`);
+        const data = await res.json();
+        loadedSeasons[seasonNumber] = data.episodes || [];
+        renderEpisodes(seasonNumber, data.episodes || []);
+    } catch (e) {
+        episodeList.innerHTML = `<p style="padding:1.5rem var(--main-padding);color:var(--text-dim);">Failed to load episodes.</p>`;
+    }
+};
+
+function renderEpisodes(seasonNumber, episodes) {
+    const episodeList = document.getElementById(`episodes-${seasonNumber}`);
+    if (!episodeList) return;
+
+    const today = new Date();
+
+    episodeList.innerHTML = episodes.map(ep => {
+        const airDate   = ep.air_date ? new Date(ep.air_date) : null;
+        const aired     = airDate && airDate <= today;
+        const dateStr   = airDate ? airDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
+        const thumb     = ep.still_path
+            ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
+            : null;
+        const rating    = ep.vote_average > 0 ? ep.vote_average.toFixed(1) : null;
+        const runtime   = ep.runtime ? `${ep.runtime}m` : '';
+
+        return `
+            <div class="episode-item ${!aired ? 'upcoming-ep' : ''}">
+                <span class="ep-number">E${String(ep.episode_number).padStart(2, '0')}</span>
+                <div class="ep-thumb">
+                    ${thumb
+                        ? `<img src="${thumb}" alt="${ep.name}" loading="lazy">`
+                        : `<div class="ep-thumb-placeholder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`
+                    }
+                    ${!aired ? '<span class="ep-upcoming-badge">Upcoming</span>' : ''}
+                </div>
+                <div class="ep-info">
+                    <div class="ep-title-row">
+                        <span class="ep-title">${ep.name || 'TBA'}</span>
+                        <div class="ep-badges">
+                            ${rating ? `<span class="ep-rating">★ ${rating}</span>` : ''}
+                            ${runtime ? `<span class="ep-runtime">${runtime}</span>` : ''}
+                        </div>
+                    </div>
+                    <span class="ep-date">${dateStr}</span>
+                    ${ep.overview ? `<p class="ep-overview">${ep.overview}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+
+init();
