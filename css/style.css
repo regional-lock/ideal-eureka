@@ -549,6 +549,10 @@ nav {
     appearance: auto;
     color-scheme: dark;
 }
+.filter-group-sm select {
+    min-width: 100px;
+    padding: 0.8rem 0.9rem;
+}
 
 .filter-group select option {
     background: #0f1117;
