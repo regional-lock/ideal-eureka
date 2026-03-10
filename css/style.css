@@ -2414,3 +2414,21 @@ main>section {
     .ep-thumb img, .ep-thumb-placeholder, .ep-thumb-skel { width: 80px; height: 46px; }
     .season-overview { display: none; }
 }
+
+/* ── Detail Watchlist Button ─────────────────────────────────────────────────── */
+.btn-watchlist {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    color: var(--text-dim);
+    transition: var(--transition);
+}
+.btn-watchlist:hover {
+    background: rgba(255, 157, 0, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.btn-watchlist.in-list {
+    background: rgba(255, 157, 0, 0.15);
+    border-color: var(--accent);
+    color: var(--accent);
+}
