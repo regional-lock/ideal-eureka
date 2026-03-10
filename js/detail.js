@@ -864,4 +864,84 @@ function renderEpisodePanel(seasonNumber) {
 }
 
 
+// ── Watchlist nav button (detail page) ───────────────────────────────────────
+(function initDetailWatchlistNav() {
+    const btn   = document.getElementById('watchlistNavBtn');
+    const count = document.getElementById('watchlistCount');
+
+    function getWL() { try { return JSON.parse(localStorage.getItem('watchlist') || '[]'); } catch { return []; } }
+
+    function updateBadge() {
+        const n = getWL().length;
+        if (count) { count.textContent = n; count.style.display = n > 0 ? 'flex' : 'none'; }
+    }
+
+    function buildModal() {
+        const existing = document.getElementById('watchlistModal');
+        if (existing) { existing.remove(); }
+
+        const list = getWL();
+        const modal = document.createElement('div');
+        modal.id = 'watchlistModal';
+        modal.className = 'wl-modal-overlay';
+        modal.innerHTML = `
+            <div class="wl-modal">
+                <div class="wl-modal-header">
+                    <span class="wl-modal-title">My Watchlist</span>
+                    <button class="wl-modal-close" id="wlModalClose">&#x2715;</button>
+                </div>
+                <div class="wl-modal-body">
+                    ${list.length === 0
+                        ? `<div class="wl-modal-empty"><span>🎬</span><p>Your watchlist is empty.</p></div>`
+                        : list.map(m => {
+                            const title  = m.title || m.name || 'Unknown';
+                            const year   = (m.release_date || m.first_air_date || '').split('-')[0];
+                            const rating = m.vote_average ? m.vote_average.toFixed(1) : null;
+                            const poster = m.poster_path
+                                ? `https://image.tmdb.org/t/p/w92${m.poster_path}`
+                                : 'https://via.placeholder.com/46x69?text=N/A';
+                            return `
+                                <div class="wl-item" onclick="window.location.href='detail.html?id=${m.id}&type=${m.media_type || 'movie'}'">
+                                    <img src="${poster}" alt="${title}">
+                                    <div class="wl-item-info">
+                                        <span class="wl-item-title">${title}</span>
+                                        <span class="wl-item-meta">
+                                            ${year ? `<span>${year}</span>` : ''}
+                                            ${rating ? `<span class="wl-item-rating">★ ${rating}</span>` : ''}
+                                            <span class="wl-item-type">${m.media_type === 'tv' ? 'Series' : 'Movie'}</span>
+                                        </span>
+                                    </div>
+                                    <button class="wl-item-remove" title="Remove" onclick="event.stopPropagation(); window.removeFromWL(${m.id})">&#x2715;</button>
+                                </div>`;
+                        }).join('')
+                    }
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.getElementById('wlModalClose').onclick = () => modal.remove();
+        modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+    }
+
+    window.removeFromWL = (id) => {
+        let list = getWL();
+        list = list.filter(m => m.id !== id);
+        localStorage.setItem('watchlist', JSON.stringify(list));
+        updateBadge();
+        buildModal(); // re-render
+    };
+
+    if (btn) btn.addEventListener('click', () => {
+        const existing = document.getElementById('watchlistModal');
+        if (existing) { existing.remove(); return; }
+        buildModal();
+    });
+
+    updateBadge();
+    // Keep badge in sync after watchlist toggle on this page
+    window.addEventListener('storage', updateBadge);
+})();
+
+
 init();
