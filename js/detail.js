@@ -494,6 +494,9 @@ function renderDetails(data, type, similarResults) {
                         <span class="db-label">TVDB</span>
                     </a>` : ''}
                 </div>
+                <button class="btn btn-watchlist btn-watchlist-poster${detailInWatchlist ? ' in-list' : ''}" id="detailWatchlistBtn">
+                    ${detailInWatchlist ? '★ In Watchlist' : '☆ Add to Watchlist'}
+                </button>
             </div>
             <div class="detail-main-info">
                 <h1>${title}</h1>
@@ -516,9 +519,6 @@ function renderDetails(data, type, similarResults) {
 
                 <div style="margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
                     ${trailer ? `<button class="btn btn-primary" id="openTrailerBtn">▶ Watch Trailer</button>` : ''}
-                    <button class="btn btn-watchlist" id="detailWatchlistBtn">
-                        ${detailInWatchlist ? '★ In Watchlist' : '☆ Add to Watchlist'}
-                    </button>
                     ${data.homepage ? `<a href="${data.homepage}" target="_blank" class="btn" style="background: var(--glass); border: 1px solid var(--glass-border); color: white;">Official Website</a>` : ''}
                 </div>
             </div>
