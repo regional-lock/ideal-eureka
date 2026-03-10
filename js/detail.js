@@ -80,6 +80,12 @@ function renderDetails(data, type, similarResults) {
     const backdrop = data.backdrop_path ? `https://image.tmdb.org/t/p/original${data.backdrop_path}` : '';
     const trailer = data.videos.results.find(v => (v.type === 'Trailer' || v.type === 'Teaser') && v.site === 'YouTube');
 
+    // Watchlist helpers (localStorage)
+    const getWatchlist    = () => { try { return JSON.parse(localStorage.getItem('watchlist') || '[]'); } catch { return []; } };
+    const saveWatchlist   = list => localStorage.setItem('watchlist', JSON.stringify(list));
+    const checkInWatchlist = id  => getWatchlist().some(m => m.id === id);
+    let detailInWatchlist = checkInWatchlist(data.id);
+
     // Robust Regional Streaming (Using TMDB's JustWatch-powered data to avoid CORS)
     const allProviders = data['watch/providers']?.results || {};
     const COUNTRIES = ["US", "ID", "SG", "JP", "KR", "GB", "DE", "FR", "IT", "ES", "CA", "AU", "BR", "MX", "IN", "MY", "PH", "TH", "TW"];
@@ -509,7 +515,10 @@ function renderDetails(data, type, similarResults) {
                 ${renderProviders()}
 
                 <div style="margin-top: 2.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
-                    ${trailer ? `<button class="btn btn-primary" id="openTrailerBtn">Watch Trailer</button>` : ''}
+                    ${trailer ? `<button class="btn btn-primary" id="openTrailerBtn">▶ Watch Trailer</button>` : ''}
+                    <button class="btn btn-watchlist" id="detailWatchlistBtn">
+                        ${detailInWatchlist ? '★ In Watchlist' : '☆ Add to Watchlist'}
+                    </button>
                     ${data.homepage ? `<a href="${data.homepage}" target="_blank" class="btn" style="background: var(--glass); border: 1px solid var(--glass-border); color: white;">Official Website</a>` : ''}
                 </div>
             </div>
@@ -589,6 +598,34 @@ function renderDetails(data, type, similarResults) {
         ` : ''
         }
 `;
+
+    // Watchlist button
+    const wlBtn = document.getElementById('detailWatchlistBtn');
+    if (wlBtn) {
+        wlBtn.addEventListener('click', () => {
+            const list = getWatchlist();
+            const idx  = list.findIndex(m => m.id === data.id);
+            if (idx >= 0) {
+                list.splice(idx, 1);
+                detailInWatchlist = false;
+                wlBtn.textContent = '☆ Add to Watchlist';
+                wlBtn.classList.remove('in-list');
+            } else {
+                list.unshift({ id: data.id, title, poster_path: data.poster_path, media_type: type, release_date: data.release_date, first_air_date: data.first_air_date, vote_average: data.vote_average });
+                detailInWatchlist = true;
+                wlBtn.textContent = '★ In Watchlist';
+                wlBtn.classList.add('in-list');
+            }
+            saveWatchlist(list);
+            // Toast
+            const toast = document.createElement('div');
+            toast.className = 'app-toast show';
+            toast.textContent = detailInWatchlist ? '★ Added to Watchlist' : 'Removed from Watchlist';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2200);
+        });
+        if (detailInWatchlist) wlBtn.classList.add('in-list');
+    }
 
     // Modal Logic
     if (trailer) {
