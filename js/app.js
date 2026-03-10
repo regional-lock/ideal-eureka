@@ -402,13 +402,30 @@ function populateDropdown(select, items, valueKey, textKey) {
 }
 
 function setHero(movie) {
+    const mediaType = movie.media_type || 'movie';
+    const title     = movie.title || movie.name;
+    const year      = (movie.release_date || movie.first_air_date || '').split('-')[0];
+    const genres    = movie.genre_ids || [];
+
     hero.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
     heroContent.innerHTML = `
-        <h1>${movie.title}</h1>
-        <p>${movie.overview.substring(0, 150)}...</p>
-        <button class="btn btn-primary" id="heroBtn">View Details</button>
+        <div class="hero-info">
+            <div class="hero-badges">
+                <span class="hero-badge-type ${mediaType}">${mediaType === 'movie' ? 'Movie' : 'Series'}</span>
+                ${year ? `<span class="hero-badge-year">${year}</span>` : ''}
+                ${movie.vote_average ? `<span class="hero-badge-rating">★ ${movie.vote_average.toFixed(1)}</span>` : ''}
+            </div>
+            <h1>${title}</h1>
+            <p>${movie.overview ? movie.overview.substring(0, 180) + '…' : ''}</p>
+            <div class="hero-actions">
+                <button class="btn btn-primary" id="heroBtn">▶ View Details</button>
+            </div>
+        </div>
+        <div class="hero-poster">
+            <img src="https://image.tmdb.org/t/p/w342${movie.poster_path}" alt="${title}">
+        </div>
     `;
-    document.getElementById('heroBtn').onclick = () => openDetails('movie', movie.id);
+    document.getElementById('heroBtn').onclick = () => openDetails(mediaType, movie.id);
 }
 
 function createMovieCard(movie, type = 'movie') {
