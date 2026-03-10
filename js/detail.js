@@ -546,26 +546,21 @@ function renderDetails(data, type, similarResults) {
         ${type === 'tv' && data.seasons ? `
         <section class="seasons-section">
             <h2 class="section-title">Seasons</h2>
-            <div class="season-list" id="seasonList">
-                ${data.seasons.filter(s => s.season_number > 0).map(s => `
-                    <div class="season-row" id="season-row-${s.season_number}">
-                        <div class="season-header" onclick="window.toggleSeason(${data.id}, ${s.season_number})" data-season="${s.season_number}">
-                            <div class="season-poster-wrap">
-                                <img src="${s.poster_path ? tmdb.getImageUrl(s.poster_path) : 'https://via.placeholder.com/120x180?text=No+Poster'}" alt="${s.name}">
+            <div class="season-grid-wrap">
+                <div class="season-grid" id="seasonGrid">
+                    ${data.seasons.filter(s => s.season_number > 0).map(s => `
+                        <div class="season-card ${s.season_number === 1 ? 'active' : ''}" id="season-card-${s.season_number}"
+                             onclick="window.toggleSeason(${data.id}, ${s.season_number})"
+                             data-season="${s.season_number}">
+                            <img src="${s.poster_path ? tmdb.getImageUrl(s.poster_path) : 'https://via.placeholder.com/500x750?text=No+Poster'}" alt="${s.name}">
+                            <div class="season-card-info">
+                                <span class="season-card-name">${s.name}</span>
+                                <span class="season-card-meta">${s.episode_count} eps${s.air_date ? ' · ' + s.air_date.split('-')[0] : ''}</span>
                             </div>
-                            <div class="season-meta">
-                                <span class="season-name">${s.name}</span>
-                                <span class="season-info">
-                                    <span class="season-ep-count">${s.episode_count} Episodes</span>
-                                    ${s.air_date ? `<span class="season-year">${s.air_date.split('-')[0]}</span>` : ''}
-                                </span>
-                                ${s.overview ? `<p class="season-overview">${s.overview}</p>` : ''}
-                            </div>
-                            <span class="season-chevron" id="chevron-${s.season_number}">›</span>
                         </div>
-                        <div class="episode-list" id="episodes-${s.season_number}" style="display:none;"></div>
-                    </div>
-                `).join('')}
+                    `).join('')}
+                </div>
+                <div class="episode-panel" id="episodePanel"></div>
             </div>
         </section>
         ` : ''
@@ -726,95 +721,109 @@ function renderDetails(data, type, similarResults) {
     };
 }
 
-// ── Season / Episode accordion ────────────────────────────────────────────────
-const loadedSeasons = {};
+// ── Season grid + episode panel ───────────────────────────────────────────────
+const loadedSeasons  = {};
+let   activeSeasonNr = null;
 
 window.toggleSeason = async (seriesId, seasonNumber) => {
-    const episodeList = document.getElementById(`episodes-${seasonNumber}`);
-    const chevron     = document.getElementById(`chevron-${seasonNumber}`);
-    if (!episodeList) return;
+    const panel = document.getElementById('episodePanel');
+    if (!panel) return;
 
-    const isOpen = episodeList.style.display !== 'none';
+    // Deactivate all cards
+    document.querySelectorAll('.season-card').forEach(c => c.classList.remove('active'));
 
-    // Close all others
-    document.querySelectorAll('.episode-list').forEach(el => el.style.display = 'none');
-    document.querySelectorAll('.season-chevron').forEach(el => { el.textContent = '›'; el.classList.remove('open'); });
-    document.querySelectorAll('.season-header').forEach(el => el.classList.remove('active'));
-
-    if (isOpen) return; // toggle off
-
-    // Mark active
-    const header = episodeList.previousElementSibling;
-    if (header) header.classList.add('active');
-    chevron.textContent = '‹';
-    chevron.classList.add('open');
-    episodeList.style.display = 'block';
-
-    // Already loaded
-    if (loadedSeasons[seasonNumber]) return;
-
-    // Skeleton
-    episodeList.innerHTML = Array(6).fill(0).map(() => `
-        <div class="episode-item episode-skeleton">
-            <div class="skeleton ep-num-skel"></div>
-            <div class="ep-thumb-skel skeleton"></div>
-            <div class="ep-info-skel">
-                <div class="skeleton ep-title-skel"></div>
-                <div class="skeleton ep-date-skel"></div>
-            </div>
-        </div>
-    `).join('');
-
-    try {
-        const res = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}?api_key=a820f2b45d233c0cc0c97d078536074f`);
-        const data = await res.json();
-        loadedSeasons[seasonNumber] = data.episodes || [];
-        renderEpisodes(seasonNumber, data.episodes || []);
-    } catch (e) {
-        episodeList.innerHTML = `<p style="padding:1.5rem var(--main-padding);color:var(--text-dim);">Failed to load episodes.</p>`;
+    // If same season clicked again → collapse
+    if (activeSeasonNr === seasonNumber) {
+        activeSeasonNr = null;
+        panel.classList.remove('open');
+        panel.innerHTML = '';
+        return;
     }
+
+    activeSeasonNr = seasonNumber;
+    document.getElementById(`season-card-${seasonNumber}`)?.classList.add('active');
+
+    // Show skeleton while loading
+    panel.classList.add('open');
+    panel.innerHTML = `
+        <div class="ep-panel-header">
+            <span class="ep-panel-title">Loading…</span>
+        </div>
+        <div class="ep-panel-list">
+            ${Array(6).fill(0).map(() => `
+                <div class="episode-item episode-skeleton">
+                    <div class="skeleton ep-num-skel"></div>
+                    <div class="ep-thumb-skel skeleton"></div>
+                    <div class="ep-info-skel">
+                        <div class="skeleton ep-title-skel"></div>
+                        <div class="skeleton ep-date-skel"></div>
+                    </div>
+                </div>
+            `).join('')}
+        </div>`;
+
+    // Scroll panel into view smoothly
+    setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+
+    // Use cache if available
+    if (!loadedSeasons[seasonNumber]) {
+        try {
+            const res  = await fetch(`https://api.themoviedb.org/3/tv/${seriesId}/season/${seasonNumber}?api_key=a820f2b45d233c0cc0c97d078536074f`);
+            const data = await res.json();
+            loadedSeasons[seasonNumber] = data;
+        } catch (e) {
+            panel.innerHTML = `<p class="ep-error">Failed to load episodes.</p>`;
+            return;
+        }
+    }
+
+    renderEpisodePanel(seasonNumber);
 };
 
-function renderEpisodes(seasonNumber, episodes) {
-    const episodeList = document.getElementById(`episodes-${seasonNumber}`);
-    if (!episodeList) return;
+function renderEpisodePanel(seasonNumber) {
+    const panel    = document.getElementById('episodePanel');
+    const season   = loadedSeasons[seasonNumber];
+    if (!panel || !season) return;
 
-    const today = new Date();
+    const episodes = season.episodes || [];
+    const today    = new Date();
 
-    episodeList.innerHTML = episodes.map(ep => {
-        const airDate   = ep.air_date ? new Date(ep.air_date) : null;
-        const aired     = airDate && airDate <= today;
-        const dateStr   = airDate ? airDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
-        const thumb     = ep.still_path
-            ? `https://image.tmdb.org/t/p/w300${ep.still_path}`
-            : null;
-        const rating    = ep.vote_average > 0 ? ep.vote_average.toFixed(1) : null;
-        const runtime   = ep.runtime ? `${ep.runtime}m` : '';
-
-        return `
-            <div class="episode-item ${!aired ? 'upcoming-ep' : ''}">
-                <span class="ep-number">E${String(ep.episode_number).padStart(2, '0')}</span>
-                <div class="ep-thumb">
-                    ${thumb
-                        ? `<img src="${thumb}" alt="${ep.name}" loading="lazy">`
-                        : `<div class="ep-thumb-placeholder"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`
-                    }
-                    ${!aired ? '<span class="ep-upcoming-badge">Upcoming</span>' : ''}
-                </div>
-                <div class="ep-info">
-                    <div class="ep-title-row">
-                        <span class="ep-title">${ep.name || 'TBA'}</span>
-                        <div class="ep-badges">
-                            ${rating ? `<span class="ep-rating">★ ${rating}</span>` : ''}
-                            ${runtime ? `<span class="ep-runtime">${runtime}</span>` : ''}
+    panel.innerHTML = `
+        <div class="ep-panel-header">
+            <span class="ep-panel-title">${season.name || 'Season ' + seasonNumber}</span>
+            <span class="ep-panel-count">${episodes.length} Episodes</span>
+        </div>
+        <div class="ep-panel-list">
+            ${episodes.map(ep => {
+                const airDate = ep.air_date ? new Date(ep.air_date) : null;
+                const aired   = airDate && airDate <= today;
+                const dateStr = airDate ? airDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'TBA';
+                const thumb   = ep.still_path ? `https://image.tmdb.org/t/p/w300${ep.still_path}` : null;
+                const rating  = ep.vote_average > 0 ? ep.vote_average.toFixed(1) : null;
+                const runtime = ep.runtime ? `${ep.runtime}m` : '';
+                return `
+                    <div class="episode-item${!aired ? ' upcoming-ep' : ''}">
+                        <span class="ep-number">E${String(ep.episode_number).padStart(2,'0')}</span>
+                        <div class="ep-thumb">
+                            ${thumb
+                                ? `<img src="${thumb}" alt="${ep.name}" loading="lazy">`
+                                : `<div class="ep-thumb-placeholder"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`}
+                            ${!aired ? '<span class="ep-upcoming-badge">Upcoming</span>' : ''}
                         </div>
-                    </div>
-                    <span class="ep-date">${dateStr}</span>
-                    ${ep.overview ? `<p class="ep-overview">${ep.overview}</p>` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
+                        <div class="ep-info">
+                            <div class="ep-title-row">
+                                <span class="ep-title">${ep.name || 'TBA'}</span>
+                                <div class="ep-badges">
+                                    ${rating  ? `<span class="ep-rating">★ ${rating}</span>` : ''}
+                                    ${runtime ? `<span class="ep-runtime">${runtime}</span>` : ''}
+                                </div>
+                            </div>
+                            <span class="ep-date">${dateStr}</span>
+                            ${ep.overview ? `<p class="ep-overview">${ep.overview}</p>` : ''}
+                        </div>
+                    </div>`;
+            }).join('')}
+        </div>`;
 }
 
 
