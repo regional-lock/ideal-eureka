@@ -755,7 +755,8 @@ main > section { margin-bottom: 4rem; }
     border: 1px solid var(--glass-border);
     position: relative;
     transform-style: preserve-3d;
-    /* Ensure consistent sizing */
+    /* Critical: prevents grid items from overflowing their cell */
+    min-width: 0;
     width: 100%;
     box-sizing: border-box;
 }
@@ -796,6 +797,9 @@ main > section { margin-bottom: 4rem; }
     border-radius: 16px 16px 0 0;
     display: block;
     transition: var(--transition);
+    /* Prevent image from overflowing its container */
+    max-width: 100%;
+    height: auto;
 }
 
 .movie-card:hover img { filter: brightness(1.1); }
