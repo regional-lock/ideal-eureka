@@ -720,6 +720,7 @@ main > section { margin-bottom: 4rem; }
     grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
     gap: 2.5rem 1.8rem;
     padding: 1.5rem var(--main-padding) 3rem;
+    align-items: start;
 }
 
 .movie-row {
@@ -748,12 +749,15 @@ main > section { margin-bottom: 4rem; }
 .movie-card {
     background: var(--bg-card);
     border-radius: 16px;
-    overflow: visible;
+    overflow: hidden;
     cursor: pointer;
     transition: var(--transition);
     border: 1px solid var(--glass-border);
     position: relative;
     transform-style: preserve-3d;
+    /* Ensure consistent sizing */
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .movie-card > img,
@@ -1782,15 +1786,29 @@ main > section { margin-bottom: 4rem; }
     /* ── Movie Grid ── */
     .movie-grid {
         grid-template-columns: repeat(3, 1fr);
-        gap: 1.2rem 0.8rem;
+        gap: 1rem 0.6rem;
         padding: 1rem 4% 2rem;
+        align-items: start;
     }
-    .movie-info h3  { font-size: 0.75rem; }
-    .movie-meta     { font-size: 0.68rem; }
+    .movie-info h3  { font-size: 0.72rem; line-height: 1.3; }
+    .movie-meta     { font-size: 0.65rem; }
 
     /* ── Movie Row ── */
     .movie-row { padding: 1rem 4%; gap: 0.8rem; -webkit-overflow-scrolling: touch; }
-    .movie-row .movie-card { flex: 0 0 110px; max-width: 110px; }
+    .movie-row .movie-card { flex: 0 0 110px; max-width: 110px; width: 110px; }
+
+    /* ── Disable hover transform on touch screens ── */
+    .movie-card:hover {
+        transform: none;
+        box-shadow: none;
+        border-color: var(--glass-border);
+        z-index: auto;
+    }
+    .movie-card:hover img { filter: none; }
+    .movie-card:active {
+        opacity: 0.85;
+        transform: scale(0.97);
+    }
 
     /* ── Slider → native scroll on mobile ── */
     .slider-viewport {
@@ -1801,7 +1819,7 @@ main > section { margin-bottom: 4rem; }
         padding: 1rem 0 2rem;
     }
     .slider-track { transition: none; }
-    .slider-track .movie-card { flex: 0 0 110px; min-width: 110px; }
+    .slider-track .movie-card { flex: 0 0 110px; min-width: 110px; width: 110px; }
     .slider-control { display: none; }
 
     /* ── Detail page ── */
@@ -1887,6 +1905,28 @@ main > section { margin-bottom: 4rem; }
 
 /* ── Very small screens (< 400px) ── */
 @media (max-width: 400px) {
-    .movie-grid { grid-template-columns: repeat(2, 1fr); }
+    .movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem 0.5rem;
+    }
     .hero-info h1 { font-size: 1.35rem; }
+}
+
+/* ── Touch / no-hover devices: disable card lift animations ── */
+@media (hover: none) {
+    .movie-card:hover {
+        transform: none !important;
+        box-shadow: none !important;
+        border-color: var(--glass-border) !important;
+        z-index: auto !important;
+    }
+    .movie-card:hover img { filter: none !important; }
+    .movie-card:active {
+        opacity: 0.8;
+        transform: scale(0.96) !important;
+        transition: transform 0.1s ease, opacity 0.1s ease;
+    }
+    .watchlist-toggle:hover {
+        transform: none;
+    }
 }
