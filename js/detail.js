@@ -695,10 +695,6 @@ function renderDetails(data, type, similarResults) {
                             <p>${countries.length} countries · ${Array.from(allTags).map(type => `<span class="tag ${type.toLowerCase()}">${type}</span>`).join(' ')}</p>
                         </div>
                     </div>
-                    <div class="p-actions-large">
-                        <button class="btn-mini-alt" onclick="window.loadProviderDetails('${name.replace(/'/g, "\\'")}')">
-                            <i class="fas fa-external-link-alt"></i> Load Details (US)
-                        </button>
                         <button class="btn-mini-alt" onclick="window.copyProviderLink('${name.replace(/'/g, "\\'")}', event)">
                             <i class="fas fa-copy"></i> Copy Link
                         </button>
