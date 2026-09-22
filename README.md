@@ -26,7 +26,7 @@ Because this is a static site, you can run it with any local static server.
 ### Option 1: Python
 
 ```bash
-cd e:\WEB\ideal-eureka-main
+cd \ideal-eureka-main
 python -m http.server 8000
 ```
 
