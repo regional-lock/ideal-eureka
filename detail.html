@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Details | Releasemap</title>
+    <meta name="theme-color" content="#05070a">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body class="detail">
+    <div class="bg-orbs" aria-hidden="true"><span class="orb orb-a"></span><span class="orb orb-b"></span><span class="grain"></span></div>
+    <nav class="site-nav">
+        <div class="nav-left">
+            <a href="index.html" class="logo">Releasemap<span class="logo-dot">.</span></a>
+            <div class="nav-links">
+                <a href="index.html?type=movie">Movies</a>
+                <a href="index.html?type=tv">TV Shows</a>
+            </div>
+        </div>
+        <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="text" id="searchInput" placeholder="Search movies & series..." autocomplete="off" spellcheck="false">
+        </div>
+    </nav>
+
+    <main>
+        <div id="detailContent">
+            <!-- Content added by detail.js -->
+        </div>
+    </main>
+
+    <!-- Trailer Modal -->
+    <div id="trailerModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" role="button" tabindex="0" aria-label="Close trailer">&times;</span>
+            <div id="trailerVideoContainer"></div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">Releasemap<span class="logo-dot">.</span></a>
+                <p class="footer-desc">
+                    Release dates, ratings and streaming availability for movies and TV shows,
+                    gathered from TMDB and JustWatch so you know where to watch.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Browse</h4>
+                <a href="index.html?type=movie">Movies</a>
+                <a href="index.html?type=tv">TV Shows</a>
+                <a href="index.html#trendingSection">Trending Now</a>
+                <a href="index.html#topRatedSection">Top Rated Series</a>
+            </div>
+            <div class="footer-col">
+                <h4>Genres</h4>
+                <a href="index.html?type=movie&amp;genre=28">Action</a>
+                <a href="index.html?type=movie&amp;genre=35">Comedy</a>
+                <a href="index.html?type=movie&amp;genre=27">Horror</a>
+                <a href="index.html?type=movie&amp;genre=878">Science Fiction</a>
+            </div>
+            <div class="footer-col">
+                <h4>More</h4>
+                <a href="index.html#filterBar">Filters</a>
+                <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>
+                <a href="https://www.justwatch.com/" target="_blank" rel="noopener">JustWatch</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span id="footerYear">2026</span> Releasemap</p>
+            <p class="footer-legal">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+            <button type="button" class="to-top" id="toTopBtn" aria-label="Back to top">&#8593; Top</button>
+        </div>
+    </footer>
+
+    <script type="module" src="js/detail.js"></script>
+    <script type="module" src="js/footer.js"></script>
+</body>
+
+
+</html>

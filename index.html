@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Releasemap | Movie Database</title>
+    <meta name="theme-color" content="#05070a">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+
+<body class="home">
+    <div class="bg-orbs" aria-hidden="true"><span class="orb orb-a"></span><span class="orb orb-b"></span><span class="grain"></span></div>
+    <nav class="site-nav">
+        <div class="nav-left">
+            <a href="index.html" class="logo">Releasemap<span class="logo-dot">.</span></a>
+            <div class="nav-links">
+                <a href="index.html?type=movie">Movies</a>
+                <a href="index.html?type=tv">TV Shows</a>
+            </div>
+        </div>
+        <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <input type="text" id="searchInput" placeholder="Search movies & series..." autocomplete="off" spellcheck="false">
+        </div>
+    </nav>
+
+    <section class="trending-band trending-slider" id="trendingSection">
+        <div class="section-head">
+            <div><p class="eyebrow">Hot right now</p><h2 class="section-title">Trending Now</h2></div>
+            <div class="section-actions">
+                <span class="live-dot"></span><span class="live-text">Updated daily</span>
+                <div class="slider-controls">
+                    <button type="button" class="slider-btn" id="trendingPrev" aria-label="Previous trending titles" aria-controls="trendingViewport">&#8249;</button>
+                    <button type="button" class="slider-btn" id="trendingNext" aria-label="Next trending titles" aria-controls="trendingViewport">&#8250;</button>
+                </div>
+            </div>
+        </div>
+        <div class="slider-viewport" id="trendingViewport" role="region" aria-label="Trending Now carousel" tabindex="0">
+            <div class="slider-track" id="trendingGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+        <div class="slider-rail" aria-hidden="true"><span class="slider-thumb" id="trendingThumb"></span></div>
+    </section>
+
+    <div class="filter-wrap">
+        <div class="filter-bar filter-card" id="filterBar">
+            <div class="filter-head">
+                <span class="filter-eyebrow">Discover</span>
+                <strong>Find your next watch</strong>
+            </div>
+            <div class="filter-group">
+                <label for="typeFilter">Type</label>
+                <select id="typeFilter">
+                    <option value="movie">Movies</option>
+                    <option value="tv">TV Shows</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="genreFilter">Genre</label>
+                <select id="genreFilter">
+                    <option value="">All Genres</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="languageFilter">Language</label>
+                <select id="languageFilter">
+                    <option value="">All Languages</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="countryFilter">Country</label>
+                <select id="countryFilter">
+                    <option value="">All Regions</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <main id="mainContent">
+        <section id="discoverySection" style="display: none;">
+            <div class="section-head">
+                <div><p class="eyebrow">Results</p><h2 class="section-title" id="discoveryTitle">Discovery Results</h2></div>
+            </div>
+            <div class="movie-grid" id="discoveryGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+        <section id="popularSection">
+            <div class="section-head">
+                <div><p class="eyebrow">Crowd favourites</p><h2 class="section-title">Popular Movies</h2></div>
+                <a class="see-all" href="index.html?type=movie">See all →</a>
+            </div>
+            <div class="movie-grid" id="popularGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+
+        <section id="topRatedSection">
+            <div class="section-head">
+                <div><p class="eyebrow">Critics & fans</p><h2 class="section-title">Top Rated Series</h2></div>
+                <a class="see-all" href="index.html?type=tv">See all →</a>
+            </div>
+            <div class="movie-grid" id="topRatedGrid">
+                <!-- Dynamically populated -->
+            </div>
+        </section>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="index.html" class="logo">Releasemap</a>
+                <p class="footer-desc">
+                    Release dates, ratings and streaming availability for movies and TV shows,
+                    gathered from TMDB and JustWatch so you know where to watch.
+                </p>
+            </div>
+            <div class="footer-col">
+                <h4>Browse</h4>
+                <a href="index.html?type=movie">Movies</a>
+                <a href="index.html?type=tv">TV Shows</a>
+                <a href="#trendingSection">Trending Now</a>
+                <a href="#topRatedSection">Top Rated Series</a>
+            </div>
+            <div class="footer-col">
+                <h4>Genres</h4>
+                <a href="index.html?type=movie&amp;genre=28">Action</a>
+                <a href="index.html?type=movie&amp;genre=35">Comedy</a>
+                <a href="index.html?type=movie&amp;genre=27">Horror</a>
+                <a href="index.html?type=movie&amp;genre=878">Science Fiction</a>
+            </div>
+            <div class="footer-col">
+                <h4>More</h4>
+                <a href="#filterBar">Filters</a>
+                <a href="https://www.themoviedb.org/" target="_blank" rel="noopener">TMDB</a>
+                <a href="https://www.justwatch.com/" target="_blank" rel="noopener">JustWatch</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; <span id="footerYear">2026</span> Releasemap</p>
+            <p class="footer-legal">This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+            <button type="button" class="to-top" id="toTopBtn" aria-label="Back to top">&#8593; Top</button>
+        </div>
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+    <script type="module" src="js/footer.js"></script>
+</body>
+
+
+</html>
+

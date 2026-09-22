@@ -1,0 +1,849 @@
+/* ==========================================================================
+   Mobile & touch responsiveness — loaded after style.css
+   ========================================================================== */
+
+/* --- Base touch / iOS fixes (every screen size) --- */
+.search-container {
+    max-width: 100%;
+}
+
+.filter-group select {
+    min-height: 46px;
+    max-width: 100%;
+}
+
+/* Horizontal rails: native flick scrolling + snap on touch devices */
+.movie-row {
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+}
+
+.movie-row > .movie-card {
+    scroll-snap-align: start;
+}
+
+/* Touch screens have no hover: stop cards from sticking in the lifted state */
+@media (hover: none) {
+
+    .movie-card:hover,
+    .cast-card:hover,
+    .db-btn:hover,
+    .logo:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .movie-card:hover img {
+        filter: none;
+    }
+
+    .back-btn:hover {
+        transform: none;
+    }
+
+    .movie-card:active {
+        transform: scale(0.97);
+    }
+}
+
+/* --- Phones --- */
+@media (max-width: 768px) {
+
+    /* Sticky bar keeps search reachable while scrolling */
+    nav {
+        position: sticky;
+        top: 0;
+        gap: 0.6rem 1rem;
+        padding: 0.55rem 1.1rem;
+        padding-left: max(1.1rem, env(safe-area-inset-left));
+        padding-right: max(1.1rem, env(safe-area-inset-right));
+    }
+
+    .nav-left {
+        gap: 0.9rem;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .logo {
+        font-size: 1.02rem;
+        letter-spacing: 1.5px;
+    }
+
+    .nav-links {
+        gap: 0.85rem;
+    }
+
+    .nav-links a {
+        font-size: 0.72rem;
+        padding: 0.1rem;
+        /* 40px+ touch target without inflating the bar */
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Search drops onto its own full-width row */
+    .search-container {
+        order: 3;
+        flex: 1 1 100%;
+        width: 100%;
+    }
+
+    .search-container input {
+        /* 16px stops iOS Safari from auto-zooming on focus */
+        font-size: 16px;
+        padding: 0.55rem 1rem;
+        min-height: 42px;
+        border-radius: 10px;
+    }
+
+    .search-dropdown {
+        top: calc(100% + 6px);
+        max-height: 60vh;
+        max-height: 60dvh;
+        border-radius: 12px;
+    }
+
+    .search-dropdown-item {
+        padding: 0.7rem 0.8rem;
+        gap: 0.7rem;
+    }
+
+    .search-dropdown-title {
+        font-size: 0.82rem;
+    }
+
+    .btn {
+        min-height: 46px;
+        padding: 0.75rem 1.4rem;
+    }
+
+    /* Filters: stacked, full width, thumb-friendly */
+    .filter-bar {
+        gap: 0.9rem 0.75rem;
+        padding: 1.5rem 1.1rem 1.25rem;
+    }
+
+    .filter-group {
+        flex: 1 1 calc(50% - 0.75rem);
+        gap: 0.35rem;
+        min-width: 0;
+    }
+
+    .filter-group label {
+        font-size: 0.62rem;
+        letter-spacing: 1.4px;
+        padding-left: 0.2rem;
+    }
+
+    .filter-group select {
+        width: 100%;
+        min-width: 0;
+        min-height: 46px;
+        /* 16px avoids the iOS zoom-on-focus */
+        font-size: 16px;
+        padding: 0.6rem 0.85rem;
+        border-radius: 12px;
+    }
+
+    /* Section rhythm */
+    main>section:first-of-type {
+        margin-top: 1.5rem;
+    }
+
+    main>section {
+        margin-bottom: 2.25rem;
+    }
+
+    .section-title {
+        padding: 1.1rem 1.1rem 0.75rem;
+        font-size: 1.15rem;
+    }
+
+    /* Grids. A nowrap card title would otherwise push a 1fr column past its
+       share, so grid items have to be allowed to shrink below min-content. */
+    .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+        gap: 1.4rem 0.75rem;
+        padding: 0.75rem 1.1rem 2rem;
+    }
+
+    .movie-grid > .movie-card {
+        min-width: 0;
+    }
+
+    .movie-row {
+        gap: 0.75rem;
+        padding: 0.75rem 1.1rem 1.75rem;
+    }
+
+    .movie-row .movie-card {
+        flex: 0 0 108px;
+        max-width: 108px;
+    }
+
+    .movie-card {
+        border-radius: 12px;
+    }
+
+    .movie-card>img,
+    .movie-card>a>img {
+        border-radius: 12px 12px 0 0;
+    }
+
+    .movie-card img {
+        border-radius: 12px 12px 0 0;
+    }
+
+    .badge {
+        top: 6px;
+        right: 6px;
+        padding: 2px 6px;
+        font-size: 0.52rem;
+        border-radius: 5px;
+    }
+
+    .movie-info {
+        padding: 0.5rem 0.55rem 0.6rem;
+    }
+
+    .movie-info h3 {
+        font-size: 0.72rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .movie-meta {
+        font-size: 0.62rem;
+        gap: 0.3rem;
+    }
+
+    /* Detail page */
+    .detail-header {
+        min-height: 0;
+        grid-template-columns: 1fr;
+        gap: 1.2rem;
+        padding: 1.5rem 1.1rem 2.5rem;
+        text-align: center;
+        align-content: start;
+    }
+
+    .detail-header::before {
+        background: linear-gradient(to bottom, rgba(5, 7, 10, 0.82) 0%, rgba(5, 7, 10, 0.92) 55%, var(--bg-dark) 100%);
+    }
+
+    .back-btn {
+        position: relative;
+        top: auto;
+        left: auto;
+        transform: none;
+        justify-self: center;
+        min-height: 44px;
+        font-size: 0.78rem;
+    }
+
+    .back-btn:hover {
+        transform: none;
+    }
+
+    .detail-poster {
+        width: min(210px, 58vw);
+        margin: 0 auto;
+    }
+
+    .detail-poster img {
+        border-radius: 10px;
+    }
+
+    .db-links {
+        gap: 0.4rem;
+        margin-top: 0.7rem;
+    }
+
+    .db-btn {
+        padding: 0.5rem 0.55rem;
+        font-size: 0.62rem;
+        min-height: 42px;
+        letter-spacing: 0.6px;
+    }
+
+    .detail-main-info {
+        gap: 0.2rem;
+    }
+
+    .detail-main-info h1 {
+        font-size: clamp(1.5rem, 6.5vw, 2.1rem);
+        letter-spacing: -0.5px;
+    }
+
+    .tagline {
+        font-size: 0.85rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .detail-main-info .stats {
+        gap: 0.5rem 0.9rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+
+    .detail-main-info .stats span {
+        font-size: 0.8rem;
+    }
+
+    .detail-main-info .stats .rating-large {
+        font-size: 1.1rem;
+    }
+
+    .detail-main-info .genres {
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+    }
+
+    .detail-main-info .genres span {
+        font-size: 0.68rem;
+        padding: 0.35rem 0.75rem;
+    }
+
+    .overview-full {
+        font-size: 0.9rem;
+        line-height: 1.65;
+        text-align: left;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.1rem;
+        margin: 0.75rem 1.1rem 0;
+        padding: 1.1rem;
+    }
+
+    .info-item p {
+        font-size: 0.85rem;
+    }
+
+    .cast-grid {
+        grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+        gap: 0.7rem;
+        padding: 0.75rem 1.1rem 1.5rem;
+    }
+
+    .cast-grid > .cast-card {
+        min-width: 0;
+    }
+
+    .cast-card h3 {
+        font-size: 0.7rem;
+    }
+
+    .cast-card .role {
+        font-size: 0.6rem;
+    }
+
+    /* Streaming availability */
+    .hint-text,
+    .services-grid,
+    .country-grid-alt {
+        padding-left: 1.1rem;
+        padding-right: 1.1rem;
+    }
+
+    .services-grid {
+        grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+        gap: 0.6rem;
+        padding-top: 0.75rem;
+        padding-bottom: 1.5rem;
+    }
+
+    .service-card {
+        padding: 0.6rem 0.35rem;
+    }
+
+    .card-inner img {
+        width: 32px;
+        height: 32px;
+    }
+
+    .provider-name {
+        font-size: 0.62rem;
+    }
+
+    .country-count {
+        font-size: 0.55rem;
+    }
+
+    .service-details-panel {
+        margin: 0.75rem 1.1rem 2.5rem;
+        border-radius: 14px;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.1rem;
+    }
+
+    .p-brand-large {
+        gap: 0.8rem;
+    }
+
+    .p-brand-large img {
+        width: 44px;
+        height: 44px;
+    }
+
+    .p-info-large h3 {
+        font-size: 1.05rem;
+    }
+
+    .p-info-large p {
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        font-size: 0.7rem;
+    }
+
+    .p-actions-large {
+        width: 100%;
+        gap: 0.5rem;
+    }
+
+    .btn-mini-alt {
+        flex: 1;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0.5rem 0.6rem;
+        font-size: 0.7rem;
+    }
+
+    .country-grid-alt {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+        padding-top: 0.9rem;
+        padding-bottom: 0.9rem;
+        max-height: 60vh;
+        max-height: 60dvh;
+    }
+
+    .country-pill-alt {
+        padding: 0.6rem 0.7rem;
+    }
+
+    /* Pagination */
+    .pagination {
+        gap: 0.3rem;
+        padding: 1.5rem 1.1rem 1rem;
+    }
+
+    .page-btn {
+        min-width: 2.1rem;
+        height: 2.1rem;
+        font-size: 0.8rem;
+    }
+
+    /* Trailer modal */
+    .modal-content {
+        width: 94%;
+        margin: 14% auto;
+    }
+
+    .close-modal {
+        top: -36px;
+        padding: 0.2rem 0.6rem;
+    }
+
+    /* Provider details popup: full-width sheet on phones */
+    .details-popup-overlay {
+        padding: 0.75rem;
+        align-items: flex-end;
+    }
+
+    .details-popup {
+        width: 100%;
+        max-height: 88vh;
+        max-height: 88dvh;
+    }
+
+    .details-popup-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+    }
+
+    .details-popup-label {
+        padding-top: 0;
+    }
+
+    .loading-detail {
+        padding: 0 1.5rem;
+    }
+}
+
+/* --- Footer layout --- */
+@media (max-width: 768px) {
+
+    /* the sticky nav is taller on phones (logo row + search row) */
+    #trendingSection,
+    #popularSection,
+    #topRatedSection,
+    #discoverySection,
+    #filterBar {
+        scroll-margin-top: 120px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem 1.5rem;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .site-footer {
+        margin-top: 2.5rem;
+        padding: 2rem 1.1rem 1.5rem;
+        padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    }
+
+    .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.6rem 1rem;
+    }
+
+    .footer-brand {
+        grid-column: 1 / -1;
+    }
+
+    .footer-desc {
+        font-size: 0.8rem;
+        max-width: none;
+    }
+
+    .footer-col h4 {
+        font-size: 0.65rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .footer-col a {
+        font-size: 0.8rem;
+        /* comfortable tap area */
+        padding: 0.25rem 0;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+        margin-top: 1.75rem;
+        padding-top: 1.1rem;
+    }
+
+    .to-top {
+        align-self: flex-end;
+        min-height: 40px;
+        padding: 0.5rem 1.1rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 1.4rem;
+    }
+}
+
+/* --- Small phones --- */
+@media (max-width: 420px) {
+    .movie-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1.2rem 0.65rem;
+    }
+
+    .movie-row .movie-card {
+        flex: 0 0 126px;
+        max-width: 126px;
+    }
+
+    .filter-group {
+        flex: 1 1 100%;
+    }
+
+    .nav-links {
+        gap: 0.7rem;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-poster {
+        width: min(180px, 52vw);
+    }
+}
+
+/* --- Respect reduced motion --- */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .btn-primary {
+        animation: none;
+    }
+}
+
+/* --- Fresh homepage (body.home) --- */
+@media (max-width: 1100px) {
+    body.home .filter-card.filter-bar {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    body.home .filter-head {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 768px) {
+    body.home .search-container input {
+        padding-left: 2.6rem;
+        border-radius: 100px;
+    }
+
+    body.home .search-container .search-icon {
+        left: 0.95rem;
+    }
+
+    body.home .trending-band {
+        padding-top: 1.75rem;
+    }
+
+    body.home .filter-wrap {
+        padding: 0 1.1rem;
+        margin-top: 1rem;
+        margin-bottom: 2.25rem;
+    }
+
+    body.home .filter-card.filter-bar {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+        padding: 1rem;
+        border-radius: 16px;
+    }
+
+    body.home .filter-head strong {
+        font-size: 0.95rem;
+    }
+
+    body.home .section-head {
+        padding: 0 1.1rem;
+        align-items: center;
+    }
+
+    body.home .section-title {
+        font-size: 1.25rem;
+    }
+
+    body.home .see-all {
+        font-size: 0.75rem;
+        padding: 0.45rem 0.75rem;
+    }
+
+    body.home .section-actions {
+        display: none;
+    }
+
+    /* Trending carousel: the live badge is decoration, the arrows still help. */
+    body.home .trending-slider .section-actions {
+        display: flex;
+    }
+
+    body.home .trending-slider .live-dot,
+    body.home .trending-slider .live-text {
+        display: none;
+    }
+
+    body.home .trending-slider .slider-controls {
+        margin-left: 0;
+    }
+
+    body.home .slider-viewport {
+        margin-inline: 1.1rem;
+        margin-bottom: -0.9rem;
+        padding-block: 1.2rem 1.5rem;
+        scroll-snap-type: x mandatory;
+    }
+
+    body.home .slider-track {
+        --slider-gap: 0.75rem;
+        --slider-visible: 2;
+        gap: var(--slider-gap);
+    }
+
+    body.home .slider-rail {
+        margin-inline: 1.1rem;
+        margin-bottom: 0.4rem;
+    }
+
+    body.home main > section:first-of-type {
+        margin-top: 1.75rem;
+    }
+
+    /* Dense cards: one per row on phones, the metric grid stays legible */
+    body.home .movie-grid {
+        grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+        gap: 1rem 0.9rem;
+        padding: 0.85rem 1.1rem 1.75rem;
+        align-items: stretch;
+    }
+
+    body.home .movie-grid > .movie-card {
+        min-width: 0;
+    }
+
+    body.home .movie-card {
+        gap: 0.75rem;
+        padding: 0.8rem;
+        border-radius: 14px;
+    }
+
+    body.home .card-head {
+        grid-template-columns: 84px minmax(0, 1fr);
+        gap: 0.75rem;
+    }
+
+    body.home .badge {
+        top: 5px;
+        left: 5px;
+        font-size: 0.5rem;
+        padding: 0.22rem 0.38rem;
+    }
+
+    body.home .rank {
+        font-size: 1.6rem;
+        right: 3px;
+        bottom: 1px;
+    }
+
+    body.home .card-meta-head .title {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+
+    body.home .sub-info {
+        font-size: 0.68rem;
+    }
+
+    body.home .pill {
+        font-size: 0.56rem;
+        padding: 0.26rem 0.48rem;
+    }
+
+    body.home .metrics-grid {
+        gap: 0.4rem;
+    }
+
+    body.home .metric-box {
+        padding: 0.42rem 0.5rem;
+    }
+
+    body.home .metric-box .label {
+        font-size: 0.5rem;
+    }
+
+    body.home .metric-box .val {
+        font-size: 0.82rem;
+    }
+
+    body.home .card-footer {
+        padding-top: 0.6rem;
+    }
+
+    body.home .status-indicator {
+        font-size: 0.64rem;
+    }
+
+    body.home .btn-details {
+        font-size: 0.58rem;
+        padding: 0.4rem 0.65rem;
+    }
+
+}
+
+/* --- Fresh theme on the detail page (body.detail) ---
+   Mirrors the homepage mobile pass: the shared nav/search treatment is scoped
+   to body.home in style.css, so the detail page needs the same overrides. */
+@media (max-width: 768px) {
+    body.detail .search-container input {
+        padding-left: 2.6rem;
+        border-radius: 100px;
+    }
+
+    body.detail .search-container .search-icon {
+        left: 0.95rem;
+    }
+
+    /* Blurred orbs are the most expensive paint on a phone — pull them in. */
+    body.detail .bg-orbs .orb {
+        width: 340px;
+        height: 340px;
+        filter: blur(80px);
+        opacity: 0.4;
+    }
+
+    body.detail .eyebrow {
+        font-size: 0.62rem;
+        letter-spacing: 1.8px;
+    }
+
+    body.detail .section-head {
+        padding: 0 1.1rem;
+        align-items: center;
+        margin-top: 2.25rem;
+    }
+
+    /* The detail page's section-actions carries a real hint, so only the
+       decorative pulse is dropped on phones. */
+    body.detail .live-dot {
+        display: none;
+    }
+
+    body.detail .live-text {
+        font-size: 0.68rem;
+    }
+
+    body.detail .providers-container {
+        margin-top: 1.1rem;
+    }
+
+    body.detail .panel-header {
+        padding: 1.1rem;
+    }
+
+    body.detail .detail-poster img {
+        border-radius: 3px;
+    }
+}
+
+@media (max-width: 420px) {
+    body.home .filter-card.filter-bar {
+        grid-template-columns: 1fr;
+    }
+
+    body.home .slider-track {
+        --slider-gap: 0.6rem;
+        --slider-visible: 1;
+        gap: var(--slider-gap);
+    }
+
+}
