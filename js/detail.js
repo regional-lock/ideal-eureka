@@ -145,48 +145,156 @@ function renderDetails(data, type, similarResults) {
     };
 
     const serviceUrlMap = {
-        netflix: 'https://www.netflix.com/',
-        'disneyplus': 'https://www.disneyplus.com/',
-        'disney plus': 'https://www.disneyplus.com/',
-        'hulu': 'https://www.hulu.com/',
-        'amazonprimevideo': 'https://www.primevideo.com/',
-        'amazon prime video': 'https://www.primevideo.com/',
-        'appletvplus': 'https://tv.apple.com/',
-        'apple tv plus': 'https://tv.apple.com/',
-        'hbomax': 'https://play.max.com/',
-        'max': 'https://play.max.com/',
-        'peacock': 'https://www.peacocktv.com/',
-        'paramountplus': 'https://www.paramountplus.com/',
-        'paramount plus': 'https://www.paramountplus.com/',
-        'crunchyroll': 'https://www.crunchyroll.com/',
-        'mubi': 'https://mubi.com/',
-        'tubi': 'https://tubitv.com/',
-        'plutotv': 'https://pluto.tv/',
-        'pluto tv': 'https://pluto.tv/',
-        'roku': 'https://therokuchannel.roku.com/',
-        'youtube': 'https://www.youtube.com/',
-        'googleplaymovies': 'https://play.google.com/store/movies',
-        'microsoftstore': 'https://www.microsoft.com/store/movies',
-        'showtime': 'https://www.paramountplus.com/shows',
-        'spectrumon': 'https://www.spectrum.com/',
-        'viaplay': 'https://viaplay.com/'
+        netflix: 'https://www.netflix.com/search?q=',
+        'disneyplus': 'https://www.disneyplus.com/search?q=',
+        'disney plus': 'https://www.disneyplus.com/search?q=',
+        disney: 'https://www.disneyplus.com/search?q=',
+        'hulu': 'https://www.hulu.com/search?query=',
+        'amazonprimevideo': 'https://www.primevideo.com/search/ref=atv_nb_sr?phrase=',
+        'amazon prime video': 'https://www.primevideo.com/search/ref=atv_nb_sr?phrase=',
+        amazon: 'https://www.primevideo.com/search/ref=atv_nb_sr?phrase=',
+        'appletvplus': 'https://tv.apple.com/search?term=',
+        'apple tv plus': 'https://tv.apple.com/search?term=',
+        appletv: 'https://tv.apple.com/search?term=',
+        'apple tv': 'https://tv.apple.com/search?term=',
+        appletvstore: 'https://tv.apple.com/search?term=',
+        'apple tv store': 'https://tv.apple.com/search?term=',
+        apple: 'https://tv.apple.com/search?term=',
+        itunes: 'https://tv.apple.com/search?term=',
+        'hbomax': 'https://play.max.com/search?q=',
+        'max': 'https://play.max.com/search?q=',
+        hbo: 'https://play.max.com/search?q=',
+        'peacock': 'https://www.peacocktv.com/search?query=',
+        'paramountplus': 'https://www.paramountplus.com/search?query=',
+        'paramount plus': 'https://www.paramountplus.com/search?query=',
+        paramount: 'https://www.paramountplus.com/search?query=',
+        'crunchyroll': 'https://www.crunchyroll.com/search?search=',
+        'mubi': 'https://mubi.com/search?q=',
+        'tubi': 'https://tubitv.com/search?q=',
+        'plutotv': 'https://pluto.tv/en/search/?query=',
+        'pluto tv': 'https://pluto.tv/en/search/?query=',
+        pluto: 'https://pluto.tv/en/search/?query=',
+        'roku': 'https://therokuchannel.roku.com/search?query=',
+        'youtube': 'https://www.youtube.com/results?search_query=',
+        googleplay: 'https://play.google.com/store/movies/search?q=',
+        'googleplaymovies': 'https://play.google.com/store/movies/search?q=',
+        'google play': 'https://play.google.com/store/movies/search?q=',
+        microsoft: 'https://www.microsoft.com/en-us/search/shop?query=',
+        'microsoftstore': 'https://www.microsoft.com/en-us/search/shop?query=',
+        'showtime': 'https://www.paramountplus.com/search?query=',
+        'spectrumon': 'https://www.spectrum.com/search?query=',
+        fubo: 'https://www.fubo.tv/search?q=',
+        'viaplay': 'https://viaplay.com/search?query='
     };
 
-    const normalizeProviderKey = (name) => String(name || '').toLowerCase().replace(/[^a-z0-9+]/g, '');
-    const resolveServiceLink = (name, provider = {}) => {
+    const normalizeProviderKey = (name) => String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    const buildServiceSearchUrl = (name, title = '') => {
         const rawName = String(name || '').trim();
-        const explicitLink = provider.serviceLink || provider.officialUrl || provider.url || provider.promoLink;
-        if (explicitLink && !/justwatch\.com|\/search\?q=/i.test(explicitLink)) return explicitLink;
-
         const key = normalizeProviderKey(rawName);
+        const query = encodeURIComponent((title || rawName).trim());
+        const normCandidate = (k) => String(k || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+
         const directMatch = serviceUrlMap[key];
-        if (directMatch) return directMatch;
+        if (directMatch) return `${directMatch}${query}`;
 
         for (const [candidateKey, candidateUrl] of Object.entries(serviceUrlMap)) {
-            if (key.includes(candidateKey) || candidateKey.includes(key)) return candidateUrl;
+            const normKey = normCandidate(candidateKey);
+            if (!normKey || !key) continue;
+            if (key.includes(normKey) || normKey.includes(key)) return `${candidateUrl}${query}`;
         }
 
-        return provider.promoLink || `https://www.justwatch.com/us/search?q=${encodeURIComponent(rawName || 'streaming')}`;
+        return null;
+    };
+
+    // A "generic home" URL is a bare domain/root path with no title-specific
+    // info in it (e.g. https://www.netflix.com/ or https://tv.apple.com/).
+    const isGenericHome = (url) => {
+        try {
+            const parsed = new URL(url);
+            const path = parsed.pathname || '/';
+            return path === '/' || path === '' || (path === '/en' && parsed.searchParams.size === 0);
+        } catch {
+            return false;
+        }
+    };
+
+    // A justwatch.com URL is only "useless" when it's JustWatch's own bare
+    // homepage or a keyword search page — NOT when it's a title-specific
+    // watch page, which is a real, working link straight to the offer.
+    const isJustWatchSearchOrHome = (url) => {
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+            if (!host.includes('justwatch')) return false;
+            return isGenericHome(url) || /^\/[a-z]{2}\/search/i.test(parsed.pathname || '');
+        } catch {
+            return false;
+        }
+    };
+
+    // Rank a candidate link so we always prefer the most specific one:
+    // 0 = direct deep link on the provider's own domain (best)
+    // 1 = title-specific justwatch.com watch page (still a real working link)
+    // 2 = provider's bare homepage (not title-specific, but on-brand)
+    // 99 = useless (empty, unparsable, or a JustWatch search/home page)
+    const linkTier = (url) => {
+        if (!url) return 99;
+        if (isJustWatchSearchOrHome(url)) return 99;
+        try {
+            const parsed = new URL(url);
+            const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+            if (host.includes('justwatch')) return 1;
+            if (isGenericHome(url)) return 2;
+            return 0;
+        } catch {
+            return 99;
+        }
+    };
+
+    const getProviderOfferLink = (provider = {}) => {
+        const countries = provider.countries || {};
+        let best = null;
+        let bestTier = 99;
+
+        for (const country of Object.keys(countries)) {
+            const offers = Array.isArray(countries[country]) ? countries[country] : [];
+            for (const offer of offers) {
+                if (!offer?.link) continue;
+                const tier = linkTier(offer.link);
+                if (tier < bestTier) {
+                    best = offer.link;
+                    bestTier = tier;
+                    if (tier === 0) return best; // can't do better than a direct deep link
+                }
+            }
+        }
+        return best;
+    };
+
+    const resolveServiceLink = (name, provider = {}) => {
+        const rawName = String(name || '').trim();
+
+        // Tier 0/1: a real deep link (direct or a title-specific JustWatch page).
+        const offerLink = getProviderOfferLink(provider);
+        if (offerLink && linkTier(offerLink) <= 1) return offerLink;
+
+        // Tier 2 fallback candidates from provider metadata, same ranking.
+        const metaLink = [provider.serviceLink, provider.officialUrl, provider.url, provider.promoLink]
+            .find(u => u && linkTier(u) <= 1);
+        if (metaLink) return metaLink;
+
+        // No title-specific link anywhere — prefer a real search on the
+        // provider's own site over a generic homepage or a JustWatch search.
+        const searchUrl = buildServiceSearchUrl(rawName, title);
+        if (searchUrl) return searchUrl;
+
+        // Still nothing known — a homepage-ish link beats no link at all.
+        if (offerLink) return offerLink;
+        const fallbackHome = [provider.serviceLink, provider.officialUrl, provider.url, provider.promoLink]
+            .find(u => u && !isJustWatchSearchOrHome(u));
+        if (fallbackHome) return fallbackHome;
+
+        return `https://www.justwatch.com/us/search?q=${encodeURIComponent(rawName || 'streaming')}`;
     };
 
     // Data structures for streaming availability (shared via closure)
@@ -951,6 +1059,7 @@ function renderDetails(data, type, similarResults) {
         // Populate Panel
         const countries = Object.keys(provider.countries).sort();
         const allTags = new Set();
+        const copyUrl = resolveServiceLink(name, provider);
         // Collect unique offer types across all countries for the header summary
         countries.forEach(c => provider.countries[c].forEach(off => allTags.add(off.type)));
 
@@ -968,7 +1077,7 @@ function renderDetails(data, type, similarResults) {
                         <button class="btn-mini-alt" data-jw-btn onclick="window.loadProviderDetails('${name.replace(/'/g, "\\'")}', event)">
                             Load Metadata
                         </button>
-                        <button class="btn-mini-alt" onclick="window.copyProviderLink('${name.replace(/'/g, "\\'")}', event)">
+                        <button class="btn-mini-alt copy-link-btn" data-copy-url="${escapeHtml(copyUrl)}" onclick="window.copyProviderLink('${name.replace(/'/g, "\\'")}', event)">
                             <i class="fas fa-copy"></i> Copy Link
                         </button>
                     </div>
@@ -1092,4 +1201,3 @@ function renderDetails(data, type, similarResults) {
 }
 
 init();
-
