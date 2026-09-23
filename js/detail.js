@@ -135,13 +135,58 @@ function renderDetails(data, type, similarResults) {
             <div class="offer-list">
                 ${offers.map(o => `
                     <div class="offer-item" title="${o.provider_name}">
-                        <img src="https://image.tmdb.org/t/p/original${o.logo_path}" alt="${o.provider_name}" class="offer-logo">
+                        <img src="${logoUrl({ logo: o.logo_path })}" alt="${escapeHtml(o.provider_name)}" class="offer-logo" loading="lazy" decoding="async" onerror="this.src='${tmdb.getPlaceholderUrl(300, 300, 'No Logo')}'">
                         <span class="offer-name">${o.provider_name}</span>
                         <span class="offer-type">${o.type}</span>
                     </div>
                 `).join('')}
             </div>
         `;
+    };
+
+    const serviceUrlMap = {
+        netflix: 'https://www.netflix.com/',
+        'disneyplus': 'https://www.disneyplus.com/',
+        'disney plus': 'https://www.disneyplus.com/',
+        'hulu': 'https://www.hulu.com/',
+        'amazonprimevideo': 'https://www.primevideo.com/',
+        'amazon prime video': 'https://www.primevideo.com/',
+        'appletvplus': 'https://tv.apple.com/',
+        'apple tv plus': 'https://tv.apple.com/',
+        'hbomax': 'https://play.max.com/',
+        'max': 'https://play.max.com/',
+        'peacock': 'https://www.peacocktv.com/',
+        'paramountplus': 'https://www.paramountplus.com/',
+        'paramount plus': 'https://www.paramountplus.com/',
+        'crunchyroll': 'https://www.crunchyroll.com/',
+        'mubi': 'https://mubi.com/',
+        'tubi': 'https://tubitv.com/',
+        'plutotv': 'https://pluto.tv/',
+        'pluto tv': 'https://pluto.tv/',
+        'roku': 'https://therokuchannel.roku.com/',
+        'youtube': 'https://www.youtube.com/',
+        'googleplaymovies': 'https://play.google.com/store/movies',
+        'microsoftstore': 'https://www.microsoft.com/store/movies',
+        'showtime': 'https://www.paramountplus.com/shows',
+        'spectrumon': 'https://www.spectrum.com/',
+        'viaplay': 'https://viaplay.com/'
+    };
+
+    const normalizeProviderKey = (name) => String(name || '').toLowerCase().replace(/[^a-z0-9+]/g, '');
+    const resolveServiceLink = (name, provider = {}) => {
+        const rawName = String(name || '').trim();
+        const explicitLink = provider.serviceLink || provider.officialUrl || provider.url || provider.promoLink;
+        if (explicitLink && !/justwatch\.com|\/search\?q=/i.test(explicitLink)) return explicitLink;
+
+        const key = normalizeProviderKey(rawName);
+        const directMatch = serviceUrlMap[key];
+        if (directMatch) return directMatch;
+
+        for (const [candidateKey, candidateUrl] of Object.entries(serviceUrlMap)) {
+            if (key.includes(candidateKey) || candidateKey.includes(key)) return candidateUrl;
+        }
+
+        return provider.promoLink || `https://www.justwatch.com/us/search?q=${encodeURIComponent(rawName || 'streaming')}`;
     };
 
     // Data structures for streaming availability (shared via closure)
@@ -351,12 +396,14 @@ function renderDetails(data, type, similarResults) {
     // Link Helpers
     window.copyProviderLink = (name, event) => {
         const provider = providerGroups[name];
-        const link = provider?.promoLink || `https://www.justwatch.com/us/search?q=${encodeURIComponent(title)}`;
+        const link = resolveServiceLink(name, provider || {});
         navigator.clipboard.writeText(link).then(() => {
             const btn = event.currentTarget || event.target.closest('button');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
             setTimeout(() => btn.innerHTML = originalText, 2000);
+        }).catch(() => {
+            console.warn('Copy failed for', name, 'using fallback link:', link);
         });
     };
 
@@ -462,7 +509,7 @@ function renderDetails(data, type, similarResults) {
             <div class="details-popup">
                 <div class="details-popup-header">
                     <div class="details-popup-brand">
-                        <img src="${logoUrl(provider)}" alt="${escapeHtml(name)}">
+                        <img src="${logoUrl(provider)}" alt="${escapeHtml(name)}" onerror="this.src='${tmdb.getPlaceholderUrl(300, 300, 'No Logo')}'">
                         <span>${escapeHtml(name)}</span>
                     </div>
                     <button class="details-popup-close" id="detailsPopupClose">&#x2715;</button>
@@ -604,7 +651,7 @@ function renderDetails(data, type, similarResults) {
             return `
                             <div id="card-${safeId}" class="service-card" onclick="window.switchService('${name.replace(/'/g, "\\'")}')" data-provider="${name}">
                                 <div class="card-inner">
-                                    <img src="https://image.tmdb.org/t/p/original${provider.logo}" alt="${name}">
+                                    <img src="${logoUrl(provider)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" onerror="this.src='${tmdb.getPlaceholderUrl(300, 300, 'No Logo')}'">
                                     <div class="card-info">
                                         <span class="provider-name">${name}</span>
                                         <span class="country-count">${countries.length} countries</span>
@@ -643,7 +690,7 @@ function renderDetails(data, type, similarResults) {
                     <div class="provider-icons">
                         ${s.data.map(p => `
                             <div class="provider-icon" title="${p.provider_name}" onclick="window.switchService('${p.provider_name.replace(/'/g, "\\'")}')" style="cursor: pointer;">
-                                <img src="https://image.tmdb.org/t/p/original${p.logo_path}" alt="${p.provider_name}">
+                                <img src="${logoUrl({ logo: p.logo_path })}" alt="${escapeHtml(p.provider_name)}" loading="lazy" decoding="async" onerror="this.src='${tmdb.getPlaceholderUrl(300, 300, 'No Logo')}'">
                             </div>
                         `).join('')}
                     </div>
@@ -911,7 +958,7 @@ function renderDetails(data, type, similarResults) {
             <div class="panel-content fadeInUp">
                 <div class="panel-header">
                     <div class="p-brand-large">
-                        <img src="https://image.tmdb.org/t/p/original${provider.logo}" alt="${name}">
+                        <img src="${logoUrl(provider)}" alt="${escapeHtml(name)}" loading="lazy" decoding="async" onerror="this.src='${tmdb.getPlaceholderUrl(300, 300, 'No Logo')}'">
                         <div class="p-info-large">
                             <h3>${name}</h3>
                             <p>${countries.length} countries · ${Array.from(allTags).map(type => `<span class="tag ${type.toLowerCase()}">${type}</span>`).join(' ')}</p>
